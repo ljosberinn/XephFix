@@ -1,7 +1,7 @@
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:SetScript("OnEvent", function()
-	local numShownEntries, numQuests = C_QuestLog:GetNumQuestLogEntries()
+	local numShownEntries, numQuests = C_QuestLog.GetNumQuestLogEntries()
 
 	if numShownEntries <= numQuests then
 		return
