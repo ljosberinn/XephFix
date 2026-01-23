@@ -166,6 +166,10 @@ table.insert(Private.LoginFnQueue, function()
 
 	FocusCastBarFrame:SetScript("OnEvent", function(self, event, ...)
 		if event == "PLAYER_FOCUS_CHANGED" then
+			if not InCombatLockdown() then
+				return
+			end
+
 			if not UnitExists("focus") then
 				for _, v in pairs(C_VoiceChat.GetTtsVoices()) do
 					if string.find(v.name, "English") then

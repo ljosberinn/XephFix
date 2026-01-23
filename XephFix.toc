@@ -18,6 +18,7 @@ Modules/FocusCastBar.lua
 Modules/FocusMarkerAnnouncement.lua
 Modules/GearUpgradeRankTooltipRenamer.lua
 Modules/GearUpgradeReminder.lua
+Modules/HiddenQuestCleanup.lua
 Modules/MDTSim.lua
 Modules/Stopwatch.lua
 Modules/TargetShield.lua

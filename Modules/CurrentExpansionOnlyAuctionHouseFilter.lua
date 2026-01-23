@@ -1,67 +1,69 @@
-local addonName, Private = ...
+-- local addonName, Private = ...
 
--- Auction House: Default "Current Expansion only" filter
-local function FocusSearchBar(editBox, shouldFocus)
-	shouldFocus = shouldFocus or false
-	if not shouldFocus and editBox:HasFocus() then
-		editBox:ClearFocus()
-	end
-	if shouldFocus and not editBox:HasFocus() then
-		editBox:SetFocus()
-	end
-end
+-- EnhanceQoL -> Economy > Auction House includes this
 
-local CraftOrdersFilterDropdownHooked = false
-local AuctionHouseSearchBarHooked = false
+-- -- Auction House: Default "Current Expansion only" filter
+-- local function FocusSearchBar(editBox, shouldFocus)
+-- 	shouldFocus = shouldFocus or false
+-- 	if not shouldFocus and editBox:HasFocus() then
+-- 		editBox:ClearFocus()
+-- 	end
+-- 	if shouldFocus and not editBox:HasFocus() then
+-- 		editBox:SetFocus()
+-- 	end
+-- end
 
-EventRegistry:RegisterFrameEventAndCallback("CRAFTINGORDERS_SHOW_CUSTOMER", function()
-	if CraftOrdersFilterDropdownHooked then
-		return
-	end
+-- local CraftOrdersFilterDropdownHooked = false
+-- local AuctionHouseSearchBarHooked = false
 
-	CraftOrdersFilterDropdownHooked = true
+-- EventRegistry:RegisterFrameEventAndCallback("CRAFTINGORDERS_SHOW_CUSTOMER", function()
+-- 	if CraftOrdersFilterDropdownHooked then
+-- 		return
+-- 	end
 
-	-- Filter state is preserved on tab switch, but let's still enforce filter state in case a user has cleared it
-	local filterDropdown = ProfessionsCustomerOrdersFrame.BrowseOrders.SearchBar.FilterDropdown
-	local searchBox = ProfessionsCustomerOrdersFrame.BrowseOrders.SearchBar.SearchBox
+-- 	CraftOrdersFilterDropdownHooked = true
 
-	local function OnShow()
-		filterDropdown.filters[Enum.AuctionHouseFilter.CurrentExpansionOnly] = true
-		filterDropdown:ValidateResetState()
-		FocusSearchBar(searchBox, true)
-	end
+-- 	-- Filter state is preserved on tab switch, but let's still enforce filter state in case a user has cleared it
+-- 	local filterDropdown = ProfessionsCustomerOrdersFrame.BrowseOrders.SearchBar.FilterDropdown
+-- 	local searchBox = ProfessionsCustomerOrdersFrame.BrowseOrders.SearchBar.SearchBox
 
-	-- this enforces filter and focus state on tab switch
-	filterDropdown:HookScript("OnShow", function(filterDropdown)
-		-- schedule to run after current event and all OnShow callbacks
-		C_Timer.After(0, OnShow)
-	end)
+-- 	local function OnShow()
+-- 		filterDropdown.filters[Enum.AuctionHouseFilter.CurrentExpansionOnly] = true
+-- 		filterDropdown:ValidateResetState()
+-- 		FocusSearchBar(searchBox, true)
+-- 	end
 
-	-- for the first time it's too late for the hook to trigger, so run it explicitly
-	C_Timer.After(0, OnShow)
-end)
+-- 	-- this enforces filter and focus state on tab switch
+-- 	filterDropdown:HookScript("OnShow", function(filterDropdown)
+-- 		-- schedule to run after current event and all OnShow callbacks
+-- 		C_Timer.After(0, OnShow)
+-- 	end)
 
-EventRegistry:RegisterFrameEventAndCallback("AUCTION_HOUSE_SHOW", function()
-	if AuctionHouseSearchBarHooked then
-		return
-	end
+-- 	-- for the first time it's too late for the hook to trigger, so run it explicitly
+-- 	C_Timer.After(0, OnShow)
+-- end)
 
-	AuctionHouseSearchBarHooked = true
-	-- this enforces filter state on tab switch
-	local searchBar = AuctionHouseFrame.SearchBar
-	local searchBox = AuctionHouseFrame.SearchBar.SearchBox
+-- EventRegistry:RegisterFrameEventAndCallback("AUCTION_HOUSE_SHOW", function()
+-- 	if AuctionHouseSearchBarHooked then
+-- 		return
+-- 	end
 
-	local function OnShow()
-		searchBar.FilterButton.filters[Enum.AuctionHouseFilter.CurrentExpansionOnly] = true
-		searchBar:UpdateClearFiltersButton()
-		FocusSearchBar(searchBox, true)
-	end
+-- 	AuctionHouseSearchBarHooked = true
+-- 	-- this enforces filter state on tab switch
+-- 	local searchBar = AuctionHouseFrame.SearchBar
+-- 	local searchBox = AuctionHouseFrame.SearchBar.SearchBox
 
-	-- this enforces filter and focus state on tab switch
-	searchBar:HookScript("OnShow", function(searchBar)
-		-- schedule to run after current event and all OnShow callbacks
-		C_Timer.After(0, OnShow)
-	end)
-	-- for the first time it's too late for the hook to trigger, so run it explicitly
-	C_Timer.After(0, OnShow)
-end)
+-- 	local function OnShow()
+-- 		searchBar.FilterButton.filters[Enum.AuctionHouseFilter.CurrentExpansionOnly] = true
+-- 		searchBar:UpdateClearFiltersButton()
+-- 		FocusSearchBar(searchBox, true)
+-- 	end
+
+-- 	-- this enforces filter and focus state on tab switch
+-- 	searchBar:HookScript("OnShow", function(searchBar)
+-- 		-- schedule to run after current event and all OnShow callbacks
+-- 		C_Timer.After(0, OnShow)
+-- 	end)
+-- 	-- for the first time it's too late for the hook to trigger, so run it explicitly
+-- 	C_Timer.After(0, OnShow)
+-- end)

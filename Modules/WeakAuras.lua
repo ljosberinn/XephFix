@@ -1,11 +1,16 @@
-local addonName, Private = ...
+local function ShowCooldownViewerSettings()
+	if InCombatLockdown() then
+		return
+	end
 
-if select(4, GetBuildInfo()) < 120000 then
-	return
+	if not CooldownViewerSettings:IsShown() then
+		CooldownViewerSettings:Show()
+	else
+		CooldownViewerSettings:Hide()
+	end
 end
 
-if SlashCmdList["WA"] == nil then
-	SlashCmdList["WA"] = function()
-		CooldownViewerSettings:ShowUIPanel(false)
-	end
+SLASH_CDMSC1, SLASH_CDMSC2 = "/cd", "/wa"
+function SlashCmdList.CDMSC(msg, editbox)
+	ShowCooldownViewerSettings()
 end
