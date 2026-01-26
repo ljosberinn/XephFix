@@ -7,11 +7,24 @@ frame:SetScript("OnEvent", function()
 		return
 	end
 
+	local total = 0
+
 	for i = 1, C_QuestLog.GetNumQuestLogEntries() do
 		local quest = C_QuestLog.GetInfo(i)
 
 		if quest and quest.isHidden then
-			C_QuestLog.RemoveQuestWatch(i)
+			local wasRemoved = C_QuestLog.RemoveQuestWatch(i)
+
+			if wasRemoved then
+				print(string.format("unwatched quest %s (%d)", quest.title, quest.questID))
+				total = total + 1
+			else
+				print(string.format("could not unwatch quest %s (%d)", quest.title, quest.questID))
+			end
 		end
+	end
+
+	if total > 0 then
+		print(string.format("unwatched %d quests", total))
 	end
 end)

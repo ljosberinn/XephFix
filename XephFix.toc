@@ -1,7 +1,6 @@
-## Interface: 1125000, 120000, 120001
+## Interface: 120000, 120001
 ## Title: XephFix
 ## DefaultState: Enabled
-## OptionalDeps: !!AddonLocale
 
 Init.lua
 
@@ -9,12 +8,8 @@ Modules/AddonSuiteProfileSwapReminder.lua
 Modules/AutoGreet.lua
 Modules/BuffWarningPatch.lua
 Modules/CharacterSheetImprovements.lua
-Modules/CharacterStatsFormatting.lua
 Modules/CleanNamesInInstances.lua
-Modules/CurrentExpansionOnlyAuctionHouseFilter.lua
 Modules/DraggableFrames.lua
-Modules/EncounterProgressWhisper.lua
-Modules/FocusCastBar.lua
 Modules/FocusMarkerAnnouncement.lua
 Modules/GearUpgradeRankTooltipRenamer.lua
 Modules/GearUpgradeReminder.lua

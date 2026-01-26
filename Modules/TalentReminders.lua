@@ -1,9 +1,5 @@
 local addonName, Private = ...
 
-if select(4, GetBuildInfo()) < 120000 then
-	return
-end
-
 ---@type table<number, number[]>
 local zoneIdToSpellIdsMap = {}
 

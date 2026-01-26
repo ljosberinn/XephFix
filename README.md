@@ -9,16 +9,15 @@ Collection of former utiltiy WeakAuras or similar:
 - CharacterSheetImprovements
   - extends the default ui character sheed with enchants, gems, and item level
 - CharacterStatsFormatting
-  - shows stats more exhaustively
+  - replaced by EQoL implementing this
 - CleanNamesInInstances
   - port of https://wago.io/M13VlqtM-
 - CurrentExpansionOnlyAuctionHouseFilter
   - port of https://wago.io/FW6qfBuIH
+  - EnhanceQoL -> Economy > Auction House includes this
 - DraggableFrames
   - makes a couple additional default ui frames draggable
 - EncounterProgressWhisper
-- FocusCastBar
-  - a simple focus cast bar, currently evoker only, in the top center of your screen. includes coloring based on whether your interrupt is ready and whether the cast is interruptible
 - GearUpgradeRankTooltipRenamer
   - port of https://wago.io/78z7JtUxS
 - GearUpgradeReminder

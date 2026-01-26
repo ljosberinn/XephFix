@@ -1,10 +1,6 @@
 local addonName, Private = ...
 
 table.insert(Private.LoginFnQueue, function()
-	if select(4, GetBuildInfo()) < 120000 then
-		return
-	end
-
 	if not Private.IsXeph then
 		return
 	end
