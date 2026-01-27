@@ -13,7 +13,7 @@ frame:SetScript("OnEvent", function()
 		local quest = C_QuestLog.GetInfo(i)
 
 		if quest and quest.isHidden then
-			local wasRemoved = C_QuestLog.RemoveQuestWatch(i)
+			local wasRemoved = C_QuestLog.RemoveQuestWatch(quest.questID)
 
 			if wasRemoved then
 				print(string.format("unwatched quest %s (%d)", quest.title, quest.questID))
