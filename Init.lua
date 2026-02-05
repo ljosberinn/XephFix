@@ -6,7 +6,7 @@ Private.IsXeph = false
 EventUtil.ContinueOnAddOnLoaded(addonName, function()
 	local name = UnitName("player")
 
-	if name == "Xephyris" then
+	if name == "Xephyris" or name == "Xepheris" or name == "Syrihpex" or name == "Vrede" or name == "Xephiscerate" then
 		Private.IsXeph = true
 	end
 

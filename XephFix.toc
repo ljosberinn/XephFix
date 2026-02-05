@@ -11,6 +11,7 @@ Modules/CharacterSheetImprovements.lua
 Modules/CleanNamesInInstances.lua
 Modules/DraggableFrames.lua
 Modules/FocusMarkerAnnouncement.lua
+Modules/FocusReminder.lua
 Modules/GearUpgradeRankTooltipRenamer.lua
 Modules/GearUpgradeReminder.lua
 Modules/HiddenQuestCleanup.lua

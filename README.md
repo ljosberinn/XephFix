@@ -48,3 +48,5 @@ The following modules are ONLY ACTIVE IF YOUR CHARACTER NAME MATCHES MINE:
 - UIScale
   - port of !UIScale addon, but doesn't throw an error when reloading ui mid-combat
   - set to 1440p resolution
+- FocusReminder
+  - plays "focus" when in combat and your focus target disappears
