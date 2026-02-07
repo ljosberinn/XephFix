@@ -17,6 +17,8 @@ The following modules are enabled for everyone by default:
   - removes the stupid alpha change for expiring auras
 - CharacterSheetImprovements
   - extends the default ui character sheed with enchants, gems, and item level
+- CooldownManagerMountOpacity
+  - changes the opacity of the cooldown manager when mounted out of combat to 0.25
 - DraggableFrames
   - makes a couple additional default ui frames draggable
     - applies to Spellbook and the Group Finder

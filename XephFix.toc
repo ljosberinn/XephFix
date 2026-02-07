@@ -9,6 +9,7 @@ Modules/AutoGreet.lua
 Modules/BuffWarningPatch.lua
 Modules/CharacterSheetImprovements.lua
 Modules/CleanNamesInInstances.lua
+Modules/CooldownManagerMountOpacity.lua
 Modules/DraggableFrames.lua
 Modules/FocusMarkerAnnouncement.lua
 Modules/FocusReminder.lua
