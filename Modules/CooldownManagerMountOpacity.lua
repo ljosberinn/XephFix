@@ -5,14 +5,11 @@ local lowAlpha = 0.25
 local frame = CreateFrame("Frame")
 frame.lastAlpha = 1
 frame:RegisterEvent("PLAYER_REGEN_DISABLED")
-frame:RegisterEvent("PLAYER_REGEN_ENABLED")
+frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
 frame:SetScript("OnEvent", function(self, event, ...)
 	if event == "PLAYER_REGEN_DISABLED" then
-		self:UnregisterEvent("UNIT_AURA")
 		self:ToggleAlpha(1)
-	elseif event == "PLAYER_REGEN_ENABLED" then
-		self:RegisterUnitEvent("UNIT_AURA", "player")
-	elseif event == "UNIT_AURA" then
+	elseif event == "PLAYER_MOUNT_DISPLAY_CHANGED" then
 		self:ToggleAlpha(IsMounted() and lowAlpha or 1)
 	end
 end)
@@ -45,8 +42,6 @@ table.insert(Private.LoginFnQueue, function()
 	end
 
 	C_Timer.After(1, function()
-		frame:RegisterUnitEvent("UNIT_AURA", "player")
-
 		if IsMounted() then
 			frame:ToggleAlpha(lowAlpha)
 		end
