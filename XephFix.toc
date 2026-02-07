@@ -12,7 +12,6 @@ Modules/CleanNamesInInstances.lua
 Modules/CooldownManagerMountOpacity.lua
 Modules/DraggableFrames.lua
 Modules/FocusMarkerAnnouncement.lua
-Modules/FocusReminder.lua
 Modules/GearUpgradeRankTooltipRenamer.lua
 Modules/GearUpgradeReminder.lua
 Modules/HiddenQuestCleanup.lua
