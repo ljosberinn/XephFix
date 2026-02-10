@@ -29,6 +29,8 @@ The following modules are enabled for everyone by default:
 - HiddenQuestCleanup
   - automatically unwatches hidden watched quests
   - sounds stupid - but this, based on unknown factors - can be a significant performance improvement, I personally gained ~9 fps in dornogal
+- MirrorContainerFix
+  - fixes the Breath & Fatigue frame not showing despite losing either or both of them
 - MDTSim
   - port of https://wago.io/LTwpBiuz_
 - TalentReminders

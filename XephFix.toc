@@ -16,6 +16,7 @@ Modules/GearUpgradeRankTooltipRenamer.lua
 Modules/GearUpgradeReminder.lua
 Modules/HiddenQuestCleanup.lua
 Modules/MDTSim.lua
+Modules/MirrorContainerFix.lua
 Modules/Stopwatch.lua
 Modules/TargetShield.lua
 Modules/TalentReminders.lua
