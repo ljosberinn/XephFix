@@ -5,11 +5,12 @@ local lowAlpha = 0.25
 local frame = CreateFrame("Frame")
 frame.lastAlpha = 1
 frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+frame:RegisterEvent("LOADING_SCREEN_DISABLED")
 frame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
 frame:SetScript("OnEvent", function(self, event, ...)
 	if event == "PLAYER_REGEN_DISABLED" then
 		self:ToggleAlpha(1)
-	elseif event == "PLAYER_MOUNT_DISPLAY_CHANGED" then
+	elseif event == "PLAYER_MOUNT_DISPLAY_CHANGED" or event == "LOADING_SCREEN_DISABLED" then
 		self:ToggleAlpha(IsMounted() and lowAlpha or 1)
 	end
 end)
