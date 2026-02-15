@@ -16,6 +16,19 @@ EventUtil.ContinueOnAddOnLoaded(addonName, function()
 	end
 
 	table.wipe(Private.LoginFnQueue)
+
+	-- local f = CreateFrame("Frame")
+	-- f:SetScript("OnEvent", function(self, event, ...)
+	-- 	XephFixSaved = {}
+	-- 	C_Timer.After(1, function()
+	-- 		for i = 1, 1288115 do
+	-- 			if C_Spell.IsSpellCrowdControl(i) then
+	-- 				table.insert(XephFixSaved, i)
+	-- 			end
+	-- 		end
+	-- 	end)
+	-- end)
+	-- f:RegisterEvent("PLAYER_REGEN_DISABLED")
 end)
 
 -- Zone Change Print
