@@ -1,136 +1,54 @@
 local addonName, Private = ...
 
 -- Gear Upgrade Rank Tooltip Renamer
-local CRESTS = Private.IsMidnight
-		and {
-			[1] = { shortName = "Veteran", color = UNCOMMON_GREEN_COLOR, achievement = 0 },
-			[2] = { shortName = "Champion", color = RARE_BLUE_COLOR, achievement = 0 },
-			[3] = { shortName = "Hero", color = ITEM_EPIC_COLOR, achievement = 0 },
-			[4] = { shortName = "Myth", color = ITEM_LEGENDARY_COLOR, achievement = 0 },
-		}
-	or {
-		[0] = { shortName = "Valorstones", color = HEIRLOOM_BLUE_COLOR },
-		[1] = { shortName = "Weathered", color = UNCOMMON_GREEN_COLOR, achievement = 41886 },
-		[2] = { shortName = "Carved", color = RARE_BLUE_COLOR, achievement = 41887 },
-		[3] = { shortName = "Runed", color = ITEM_EPIC_COLOR, achievement = 41888 },
-		[4] = { shortName = "Gilded", color = ITEM_LEGENDARY_COLOR, achievement = 41892 },
-	}
+local CRESTS = {
+	[0] = { shortName = "Adventurer", color = HEIRLOOM_BLUE_COLOR, achievement = 61809 },
+	[1] = { shortName = "Veteran", color = UNCOMMON_GREEN_COLOR, achievement = 42767 },
+	[2] = { shortName = "Champion", color = RARE_BLUE_COLOR, achievement = 42768 },
+	[3] = { shortName = "Hero", color = ITEM_EPIC_COLOR, achievement = 42769 },
+	[4] = { shortName = "Myth", color = ITEM_LEGENDARY_COLOR, achievement = 42770 },
+}
 
 -- Upgrade tiers with crest change points
 -- ([i]=CRESTS[x]) where i = the upgrade level where crest type changes
 -- i=4 means to upgrade from rank 4 to the next rank.
-local UPGRADE_TIERS = Private.IsMidnight
-		and {
-			{
-				name = "Adventurer",
-				minIlvl = 220,
-				maxIlvl = 237,
-				maxUpgrade = 6,
-				color = WHITE_FONT_COLOR,
-				crestLevels = { [1] = CRESTS[0], [3] = CRESTS[0], [6] = nil },
-			},
-			{
-				name = "Veteran",
-				minIlvl = 233,
-				maxIlvl = 250,
-				maxUpgrade = 6,
-				color = UNCOMMON_GREEN_COLOR,
-				crestLevels = { [1] = CRESTS[0], [3] = CRESTS[0], [6] = nil },
-			},
-			{
-				name = "Champion",
-				minIlvl = 246,
-				maxIlvl = 263,
-				maxUpgrade = 6,
-				color = RARE_BLUE_COLOR,
-				crestLevels = { [1] = CRESTS[0], [3] = CRESTS[0], [6] = nil },
-			},
-			{
-				name = "Hero",
-				minIlvl = 259,
-				maxIlvl = 276,
-				maxUpgrade = 6,
-				color = ITEM_EPIC_COLOR,
-				crestLevels = { [1] = CRESTS[0], [3] = CRESTS[0], [6] = nil },
-			},
-			{
-				name = "Myth",
-				minIlvl = 272,
-				maxIlvl = 289,
-				maxUpgrade = 6,
-				color = ITEM_LEGENDARY_COLOR,
-				crestLevels = { [1] = CRESTS[0], [3] = CRESTS[0], [6] = nil },
-			},
-		}
-	or {
-		{
-			name = "Explorer",
-			minIlvl = 642,
-			maxIlvl = 665,
-			maxUpgrade = 8,
-			color = ITEM_POOR_COLOR,
-			crestLevels = { [1] = CRESTS[0], [4] = CRESTS[0], [8] = nil },
-		},
-		{
-			name = "Adventurer",
-			minIlvl = 655,
-			maxIlvl = 678,
-			maxUpgrade = 8,
-			color = WHITE_FONT_COLOR,
-			crestLevels = { [1] = CRESTS[0], [4] = CRESTS[1], [8] = nil },
-		},
-		{
-			name = "Veteran",
-			minIlvl = 668,
-			maxIlvl = 691,
-			maxUpgrade = 8,
-			color = UNCOMMON_GREEN_COLOR,
-			crestLevels = { [1] = CRESTS[1], [4] = CRESTS[2], [8] = nil },
-		},
-		{
-			name = "Champion",
-			minIlvl = 681,
-			maxIlvl = 704,
-			maxUpgrade = 8,
-			color = RARE_BLUE_COLOR,
-			crestLevels = { [1] = CRESTS[2], [4] = CRESTS[3], [8] = nil },
-		},
-		{
-			name = "Hero",
-			minIlvl = 694,
-			maxIlvl = 710,
-			maxUpgrade = 6,
-			color = ITEM_EPIC_COLOR,
-			crestLevels = { [1] = CRESTS[3], [4] = CRESTS[4], [6] = nil },
-		},
-		{
-			name = "Myth",
-			minIlvl = 707,
-			maxIlvl = 730,
-			maxUpgrade = 8,
-			color = ITEM_LEGENDARY_COLOR,
-			crestLevels = { [1] = CRESTS[4], [8] = nil },
-		},
-	}
-
--- Get crest dynamically based on upgrade level
----@param current number
----@param maxUpgrade number
-local function GetCrestForLevel(crestLevels, current, maxUpgrade)
-	-- If at max upgrade, no crest is required
-	if current == maxUpgrade then
-		return nil
-	end
-
-	local selectedCrest = nil
-	for level, crest in pairs(crestLevels) do
-		if current >= level then
-			selectedCrest = crest -- Update to highest applicable crest
-		end
-	end
-
-	return selectedCrest
-end
+local UPGRADE_TIERS = {
+	{
+		name = "Adventurer",
+		minIlvl = 220,
+		maxIlvl = 237,
+		maxUpgrade = 6,
+		color = WHITE_FONT_COLOR,
+	},
+	{
+		name = "Veteran",
+		minIlvl = 233,
+		maxIlvl = 250,
+		maxUpgrade = 6,
+		color = UNCOMMON_GREEN_COLOR,
+	},
+	{
+		name = "Champion",
+		minIlvl = 246,
+		maxIlvl = 263,
+		maxUpgrade = 6,
+		color = RARE_BLUE_COLOR,
+	},
+	{
+		name = "Hero",
+		minIlvl = 259,
+		maxIlvl = 276,
+		maxUpgrade = 6,
+		color = ITEM_EPIC_COLOR,
+	},
+	{
+		name = "Myth",
+		minIlvl = 272,
+		maxIlvl = 289,
+		maxUpgrade = 6,
+		color = ITEM_LEGENDARY_COLOR,
+	},
+}
 
 -- Get tier data based on item level and upgrade level
 ---@param ilvl number
@@ -150,7 +68,6 @@ local function GetUpgradeTierData(ilvl, current, total)
 					minIlvl = tier.minIlvl,
 					maxIlvl = tier.maxIlvl,
 					color = tier.color,
-					crest = GetCrestForLevel(tier.crestLevels, current, tier.maxUpgrade),
 				}
 			end
 		end
@@ -210,21 +127,6 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tool
 
 				line:SetText(newLineText)
 				line:Show()
-			end
-
-			-- Add Crest required to upgrade
-			if tierData.crest then
-				local crest = tierData.crest
-
-				if crest then
-					local crestName = crest.shortName
-					local crestName_colored = crest.color:WrapTextInColorCode(crestName)
-					local achievement = crest.achievement and select(13, GetAchievementInfo(crest.achievement))
-					local rightLineText = "|A:2329:20:20:1:-1|a" .. (not achievement and crestName_colored or "")
-					local rightLine = _G[tooltip:GetName() .. "TextRight" .. i]
-					rightLine:SetText(rightLineText)
-					rightLine:Show()
-				end
 			end
 		end
 	end

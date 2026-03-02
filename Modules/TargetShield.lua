@@ -37,6 +37,7 @@ table.insert(Private.LoginFnQueue, function()
 				or UnitIsPlayer("target")
 				or (UnitIsFriend("player", "target") and not UnitCanAttack("player", "target"))
 			then
+				self:SetAlpha(0)
 				return
 			end
 

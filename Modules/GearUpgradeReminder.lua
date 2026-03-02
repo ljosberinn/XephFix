@@ -1,22 +1,44 @@
 local addonName, Private = ...
 
 -- https://www.raidbots.com/static/data/xptr/bonuses.json
--- copy(JSON.stringify(Object.values(JSON.parse($0.textContent)).filter(x => x.upgrade?.seasonId === 30).reduce((acc, data) => {
+-- copy(JSON.stringify(Object.values(JSON.parse($0.textContent)).filter(x => x.upgrade?.seasonId === 34).reduce((acc, data) => {
 --     acc[data.id] = data.upgrade.name
 --     return acc
 -- }, {})))
 
 local bonusToTierMap = {
-	[13332] = "Raid Finder",
-	[13334] = "Heroic",
-	[13335] = "Mythic",
-	[13443] = "Hero",
-	[13444] = "Hero",
-	[13445] = "Myth",
-	[13446] = "Myth",
+	[12769] = "Adventurer",
+	[12770] = "Adventurer",
+	[12771] = "Adventurer",
+	[12772] = "Adventurer",
+	[12773] = "Adventurer",
+	[12774] = "Adventurer",
+	[12777] = "Veteran",
+	[12778] = "Veteran",
+	[12779] = "Veteran",
+	[12780] = "Veteran",
+	[12781] = "Veteran",
+	[12782] = "Veteran",
+	[12785] = "Champion",
+	[12786] = "Champion",
+	[12787] = "Champion",
+	[12788] = "Champion",
+	[12789] = "Champion",
+	[12790] = "Champion",
+	[12793] = "Hero",
+	[12794] = "Hero",
+	[12795] = "Hero",
+	[12796] = "Hero",
+	[12797] = "Hero",
+	[12798] = "Hero",
+	[12801] = "Myth",
+	[12802] = "Myth",
+	[12803] = "Myth",
+	[12804] = "Myth",
+	[12805] = "Myth",
+	[12806] = "Myth",
 }
-
--- copy(JSON.stringify(Object.values(JSON.parse($0.textContent)).filter(x => x.upgrade?.seasonId === 30).reduce((acc, data) => {
+-- copy(JSON.stringify(Object.values(JSON.parse($0.textContent)).filter(x => x.upgrade?.seasonId === 34).reduce((acc, data) => {
 --     const [tier] = data.upgrade.fullName.split(' ')
 --     if (acc[tier]) {
 --         if (data.upgrade.itemLevel > acc[tier].max) {
@@ -48,7 +70,7 @@ local craftedBonusIds = {
 	-- presumably 15587?
 }
 
-local crestFreeItemLevelUpgradeThreshold = 999
+local crestFreeItemLevelUpgradeThreshold = 0
 
 local function GetUpgradeTrack(bonusIds)
 	for i = 1, #bonusIds do
