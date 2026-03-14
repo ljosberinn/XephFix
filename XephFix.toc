@@ -21,6 +21,5 @@ Modules/MirrorContainerFix.lua
 Modules/Stopwatch.lua
 Modules/TargetShield.lua
 Modules/TalentReminders.lua
-Modules/TurnSpeed.lua
 Modules/UIScale.lua
 Modules/WeakAuras.lua
