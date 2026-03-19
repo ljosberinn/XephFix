@@ -112,7 +112,7 @@ local function GetBonusIds(link)
 	return bonuses
 end
 
-EventRegistry:RegisterFrameEventAndCallback("PLAYER_EQUIPMENT_CHANGED", function()
+local function OnUpdate()
 	local itemSlots = {
 		INVSLOT_HEAD,
 		INVSLOT_NECK,
@@ -180,4 +180,7 @@ EventRegistry:RegisterFrameEventAndCallback("PLAYER_EQUIPMENT_CHANGED", function
 			end
 		end
 	end
-end)
+end
+
+EventRegistry:RegisterFrameEventAndCallback("PLAYER_EQUIPMENT_CHANGED", OnUpdate)
+EventRegistry:RegisterFrameEventAndCallback("BAG_UPDATE_DELAYED", OnUpdate)
