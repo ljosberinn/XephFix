@@ -1,4 +1,4 @@
-## Interface: 120001
+## Interface: 120001, 120005
 ## Title: XephFix
 ## DefaultState: Enabled
 
@@ -10,6 +10,7 @@ Modules/BuffWarningPatch.lua
 Modules/CharacterSheetImprovements.lua
 Modules/CleanNamesInInstances.lua
 Modules/CooldownManagerMountOpacity.lua
+Modules/DamageMeterToggle.lua
 Modules/DraggableFrames.lua
 Modules/EvokerLetFly.lua
 Modules/FocusMarkerAnnouncement.lua
