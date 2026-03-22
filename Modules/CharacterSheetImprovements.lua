@@ -68,6 +68,16 @@ local slotNameMap = {
 	[Enum.InventoryType.IndexTabardType] = "Tabard",
 }
 
+local function SlotIsEnchantable(slot)
+	return slot == Enum.InventoryType.IndexHeadType
+		or slot == Enum.InventoryType.IndexShoulderType
+		or slot == Enum.InventoryType.IndexChestType
+		or slot == Enum.InventoryType.IndexLegsType
+		or slot == Enum.InventoryType.IndexFeetType
+		or slot == Enum.InventoryType.IndexFingerType
+		or slot == Enum.InventoryType.IndexCloakType
+end
+
 ---@param unit string
 ---@param slot number
 ---@return string?
@@ -151,10 +161,13 @@ local function SetupFrames(slot, slotFrameName)
 	return LevelText, EnchantText, GemFrames
 end
 
+local missingEnchantsLabel = "cheap fuck"
+
+---@param slot number
 ---@param itemLink string
 ---@param initialItemLevel number
 ---@return number, string
-local function ParseItemLevelAndEnchant(itemLink, initialItemLevel)
+local function ParseItemLevelAndEnchant(slot, itemLink, initialItemLevel)
 	---@type GameTooltip
 	local ItemTooltip = _G["XephScanningTooltip"]
 
@@ -189,6 +202,10 @@ local function ParseItemLevelAndEnchant(itemLink, initialItemLevel)
 		if foundLevel then
 			initialItemLevel = foundLevel
 		end
+	end
+
+	if enchant == "" and SlotIsEnchantable(slot) then
+		enchant = missingEnchantsLabel
 	end
 
 	return initialItemLevel, enchant
@@ -248,7 +265,7 @@ local function UpdateSlot(unit, slot)
 		return
 	end
 
-	local itemLevel, enchant = ParseItemLevelAndEnchant(itemLink, initialItemLevel)
+	local itemLevel, enchant = ParseItemLevelAndEnchant(slot, itemLink, initialItemLevel)
 
 	-- -- set iLvl
 	local levelFont = LevelText:GetFont()
@@ -262,7 +279,7 @@ local function UpdateSlot(unit, slot)
 	local enchantFont = EnchantText:GetFont()
 	EnchantText:SetFont(enchantFont, 10)
 
-	local color = "FF00FF00"
+	local color = enchant == missingEnchantsLabel and "FFFF0000" or "FF00FF00"
 
 	-- find and strip existing color
 	local newColor, coloredEnchant = enchant:match("|c(%x%x%x%x%x%x%x%x)(.+)|r") -- hex codes
