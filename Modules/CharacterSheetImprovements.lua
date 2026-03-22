@@ -75,6 +75,7 @@ local function SlotIsEnchantable(slot)
 		or slot == Enum.InventoryType.IndexLegsType
 		or slot == Enum.InventoryType.IndexFeetType
 		or slot == Enum.InventoryType.IndexFingerType
+		or slot == Enum.InventoryType.IndexTrinketType
 		or slot == Enum.InventoryType.IndexCloakType
 end
 
