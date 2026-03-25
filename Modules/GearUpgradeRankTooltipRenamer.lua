@@ -97,7 +97,11 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tool
 		local line = _G[tooltip:GetName() .. "TextLeft" .. i]
 		local text = line:GetText()
 
-		if text and text:match(ITEM_UPGRADE_TOOLTIP_FORMAT_STRING:gsub("%%s %%d/%%d", "(%%D+ %%d+/%%d+)")) then
+		if
+			text
+			and not issecretvalue(text)
+			and text:match(ITEM_UPGRADE_TOOLTIP_FORMAT_STRING:gsub("%%s %%d/%%d", "(%%D+ %%d+/%%d+)"))
+		then
 			local tier, current, total =
 				text:match(ITEM_UPGRADE_TOOLTIP_FORMAT_STRING:gsub("%%s %%d/%%d", "(%%D+) (%%d+)/(%%d+)"))
 
