@@ -70,8 +70,6 @@ local craftedBonusIds = {
 	-- presumably 15587?
 }
 
-local crestFreeItemLevelUpgradeThreshold = 0
-
 local function GetUpgradeTrack(bonusIds)
 	for i = 1, #bonusIds do
 		local id = tonumber(bonusIds[i])
@@ -111,6 +109,9 @@ local function GetBonusIds(link)
 
 	return bonuses
 end
+
+---@type table<number, string>
+local reportedUpgrades = {}
 
 local function OnUpdate()
 	local itemSlots = {
@@ -158,22 +159,15 @@ local function OnUpdate()
 
 						local finalIlvlToCompareWith = upgradeTrack.max < watermark and upgradeTrack.max or watermark
 
-						if currentItemLevel < finalIlvlToCompareWith then
-							local msg = format(
-								"%s can be upgraded to item level %d without using crests!",
-								itemLink,
-								finalIlvlToCompareWith
+						if currentItemLevel < finalIlvlToCompareWith and reportedUpgrades[slot] ~= itemLink then
+							reportedUpgrades[slot] = itemLink
+							print(
+								string.format(
+									"%s can be upgraded to item level %d without using crests!",
+									itemLink,
+									finalIlvlToCompareWith
+								)
 							)
-
-							print(msg)
-						elseif currentItemLevel < crestFreeItemLevelUpgradeThreshold then
-							local msg = format(
-								"%s can be upgraded to item level %d without crests!",
-								itemLink,
-								crestFreeItemLevelUpgradeThreshold
-							)
-
-							print(msg)
 						end
 					end
 				end
@@ -182,5 +176,8 @@ local function OnUpdate()
 	end
 end
 
-EventRegistry:RegisterFrameEventAndCallback("PLAYER_EQUIPMENT_CHANGED", OnUpdate)
-EventRegistry:RegisterFrameEventAndCallback("BAG_UPDATE_DELAYED", OnUpdate)
+local frame = CreateFrame("Frame")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
+frame:RegisterEvent("BAG_UPDATE_DELAYED")
+frame:SetScript("OnEvent", OnUpdate)
