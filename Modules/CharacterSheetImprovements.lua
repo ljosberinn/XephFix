@@ -126,7 +126,6 @@ local function SetupFrames(slot, slotFrameName)
 		end
 
 		LevelText:SetShadowColor(0, 0, 0)
-		LevelText:SetShadowOffset(0, 0)
 		LevelText:SetShadowOffset(1, -1)
 	end
 
@@ -135,7 +134,6 @@ local function SetupFrames(slot, slotFrameName)
 		EnchantText = parentFrame:CreateFontString(slotFrameName .. "XephEnchant", "ARTWORK", "GameTooltipText")
 		EnchantText:SetPoint(framePoint, parentFrame, parentPoint, offsetX, -12)
 		EnchantText:SetShadowColor(0, 0, 0)
-		EnchantText:SetShadowOffset(0, 0)
 		EnchantText:SetShadowOffset(1, -1)
 	end
 
@@ -232,7 +230,6 @@ local function UpdateSlot(unit, slot)
 			AverageItemLevelText = InspectModelFrame:CreateFontString("XephAvgIlvl", "OVERLAY", "GameTooltipText")
 			AverageItemLevelText:SetPoint("TOP", InspectModelFrame, "TOP", 0, -5)
 			AverageItemLevelText:SetShadowColor(0, 0, 0)
-			AverageItemLevelText:SetShadowOffset(0, 0)
 			AverageItemLevelText:SetShadowOffset(1, -1)
 		end
 
@@ -371,6 +368,9 @@ do
 
 	hooksecurefunc("InspectFrame_LoadUI", function()
 		if not inspectHooked then
+			InspectPaperDollFrame:HookScript("OnShow", function(self)
+				inspecting = true
+			end)
 			InspectPaperDollFrame:HookScript("OnHide", function(self)
 				inspecting = false
 			end)
@@ -381,63 +381,61 @@ do
 	end)
 end
 
-EventRegistry:RegisterFrameEventAndCallback("PLAYER_EQUIPMENT_CHANGED", function(...)
-	if not characterOpen then
-		return
+local eventFrame = CreateFrame("Frame")
+eventFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
+eventFrame:RegisterEvent("INSPECT_READY")
+eventFrame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+eventFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
+
+eventFrame:SetScript("OnEvent", function(_, event, ...)
+	if event == "PLAYER_EQUIPMENT_CHANGED" then
+		if not characterOpen then
+			return
+		end
+
+		local slotId = ...
+		if slotId == nil then
+			return
+		end
+
+		UpdateSlot("player", slotId)
+	elseif event == "INSPECT_READY" then
+		-- Fired, possibly multiple times, when inspect data is ready
+		if not inspecting then
+			return
+		end
+
+		local inspectGuid = ...
+		if inspectGuid == nil or inspectGuid ~= lastInspectGuid or lastInspectUnit == nil then
+			return
+		end
+
+		UpdateAllSlots(lastInspectUnit)
+	elseif event == "GET_ITEM_INFO_RECEIVED" then
+		-- GetItemInfo for uncached item data is ready
+		if not characterOpen and not inspecting then
+			return
+		end
+
+		local itemId = ...
+		if itemId == nil or itemInfoRequested[itemId] == nil then
+			return
+		end
+
+		local request = itemInfoRequested[itemId]
+		itemInfoRequested[itemId] = nil
+		UpdateSlot(request.unit, request.slot)
+	elseif event == "UNIT_INVENTORY_CHANGED" then
+		-- needed for item enchants
+		if not characterOpen then
+			return
+		end
+
+		local unit = ...
+		if unit ~= "player" then
+			return
+		end
+
+		UpdateAllSlots(unit)
 	end
-
-	local ownerId, slotId = ...
-
-	if slotId == nil then
-		return
-	end
-
-	UpdateSlot("player", slotId)
-end)
-
--- Fired, possibly multiple times, when inspect data is ready
-EventRegistry:RegisterFrameEventAndCallback("INSPECT_READY", function(...)
-	if not inspecting then
-		return
-	end
-
-	local ownerId, inspectGuid = ...
-
-	if inspectGuid == nil or inspectGuid ~= lastInspectGuid or lastInspectUnit == nil then
-		return
-	end
-
-	UpdateAllSlots(lastInspectUnit)
-end)
-
--- GetItemInfo for uncached item data is ready
-EventRegistry:RegisterFrameEventAndCallback("GET_ITEM_INFO_RECEIVED", function(...)
-	if not characterOpen then
-		return
-	end
-
-	local ownerId, itemId = ...
-
-	if itemId == nil or itemInfoRequested[itemId] == nil then
-		return
-	end
-
-	local request = itemInfoRequested[itemId]
-	itemInfoRequested[itemId] = nil
-	UpdateSlot(request.unit, request.slot)
-end)
-
--- needed for item enchants
-EventRegistry:RegisterFrameEventAndCallback("UNIT_INVENTORY_CHANGED", function(...)
-	if not characterOpen then
-		return
-	end
-
-	local unit = ...
-
-	if unit ~= "player" then
-		return
-	end
-
-	UpdateAllSlots(unit)
 end)
