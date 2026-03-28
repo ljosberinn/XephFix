@@ -12,7 +12,7 @@ frame:SetScript("OnEvent", function()
 	for i = 1, C_QuestLog.GetNumQuestLogEntries() do
 		local quest = C_QuestLog.GetInfo(i)
 
-		if quest and quest.isHidden then
+		if quest and quest.isHidden and not quest.isHeader then
 			local wasRemoved = C_QuestLog.RemoveQuestWatch(quest.questID)
 
 			if wasRemoved then
