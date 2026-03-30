@@ -12,13 +12,13 @@ table.insert(Private.LoginFnQueue, function()
 	frame:RegisterEvent("LOOT_BIND_CONFIRM")
 	frame:SetScript("OnEvent", function(self, event, ...)
 		if event == "LOOT_READY" then
-			if GetTime() - self.lastLoot < 0.3 then
+			if GetTime() - self.lastLoot < 0.1 then
 				return
 			end
 
 			self.lastLoot = GetTime()
 
-			if GetCVarBool("autoLootDefault") ~= IsModifiedClick("AUTOLOOTTOGGLE") then
+			if C_CVar.GetCVarBool("autoLootDefault") ~= IsModifiedClick("AUTOLOOTTOGGLE") then
 				for i = GetNumLootItems(), 1, -1 do
 					LootSlot(i)
 				end

@@ -184,7 +184,7 @@ local function ParseItemLevelAndEnchant(slot, itemLink, initialItemLevel)
 		local leftText = _G["XephScanningTooltipTextLeft" .. i]:GetText()
 		local foundEnchant = leftText:match(ENCHANTED_TOOLTIP_LINE:gsub("%%s", "(.+)"))
 
-		if foundEnchant then
+		if foundEnchant ~= nil then
 			local qualityPosition = string.find(foundEnchant, "|A:")
 
 			if qualityPosition ~= nil then

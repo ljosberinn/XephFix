@@ -1,30 +1,55 @@
 local addonName, Private = ...
 
-EventRegistry:RegisterFrameEventAndCallback("GROUP_JOINED", function()
-	if IsInRaid() then
-		return false
-	end
+local lastGroupSize = 0
 
-	local function DoGreeting()
-		if not InCombatLockdown() then
-			local num = math.random(1, 100)
-			local greeting = "hi"
-			if num <= 5 then
-				greeting = "hello everypony"
-			elseif num <= 10 then
-				greeting = "meowdy"
-			end
+local frame = CreateFrame("Frame")
+frame:RegisterEvent("GROUP_JOINED")
+frame:RegisterEvent("GROUP_ROSTER_UPDATE")
 
-			C_ChatInfo.SendChatMessage(greeting, "PARTY")
+function frame:DoGreeting()
+	if not InCombatLockdown() then
+		local num = math.random(1, 100)
+		local greeting = "hi"
+		if num <= 5 then
+			greeting = "hello everypony"
+		elseif num <= 10 then
+			greeting = "meowdy"
 		end
-	end
 
+		C_ChatInfo.SendChatMessage(greeting, "PARTY")
+	end
+end
+
+function frame:GreetAfterCombat()
 	if InCombatLockdown() then
-		EventRegistry:RegisterFrameEventAndCallback("PLAYER_REGEN_ENABLED", function(ownerId)
-			DoGreeting()
-			EventRegistry:UnregisterFrameEventAndCallback("PLAYER_REGEN_ENABLED", ownerId)
-		end)
+		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 	else
-		C_Timer.After(2, DoGreeting)
+		C_Timer.After(2, GenerateClosure(self.DoGreeting, self))
+	end
+end
+
+frame:SetScript("OnEvent", function(self, event)
+	if event == "PLAYER_REGEN_ENABLED" then
+		self:UnregisterEvent("PLAYER_REGEN_ENABLED")
+		self:DoGreeting()
+	elseif event == "GROUP_JOINED" then
+		if IsInRaid() then
+			return
+		end
+		lastGroupSize = GetNumGroupMembers()
+		self:GreetAfterCombat()
+	elseif event == "GROUP_ROSTER_UPDATE" then
+		if IsInRaid() then
+			lastGroupSize = 0
+			return
+		end
+
+		local currentSize = GetNumGroupMembers()
+
+		if currentSize > lastGroupSize then
+			self:GreetAfterCombat()
+		end
+
+		lastGroupSize = currentSize
 	end
 end)
