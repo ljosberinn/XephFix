@@ -1,11 +1,14 @@
-local addonName, Private = ...
+local _ = ...
 
+local frame = CreateFrame("Frame")
+frame.lastMapId = nil
+frame.pattern = "Consider talenting the following spells: %s"
 ---@type table<number, number[]>
-local zoneIdToSpellIdsMap = {}
+frame.zoneIdToSpellIdsMap = {}
 
-local shouldLoad = false
+function frame:BuildReminders()
+	self.zoneIdToSpellIdsMap = {}
 
-do
 	local classId = select(3, UnitClass("player"))
 	local specId = PlayerUtil.GetCurrentSpecID()
 
@@ -21,94 +24,88 @@ do
 		windrunnersSpire = 2492,
 	}
 
-	-- see classID here: https://wago.tools/db2/ChrSpecialization
-	if classId == 13 then -- evoker
+	if classId == Constants.UICharacterClasses.Evoker then
 		local Expunge = 365585
 		local CauterizingFlame = 374251
 		local BestowWeyrnstone = 408233
 		local Zephyr = 374227
 
-		zoneIdToSpellIdsMap[dungeons.araKara] = {
+		self.zoneIdToSpellIdsMap[dungeons.araKara] = {
 			Expunge,
 			CauterizingFlame,
 			Zephyr,
 		}
 
-		zoneIdToSpellIdsMap[dungeons.algetharAcademy] = {
+		self.zoneIdToSpellIdsMap[dungeons.algetharAcademy] = {
 			CauterizingFlame,
 			Expunge,
 			Zephyr,
 		}
 
-		if specId == 1473 then
-			table.insert(zoneIdToSpellIdsMap[dungeons.algetharAcademy], BestowWeyrnstone)
+		self.zoneIdToSpellIdsMap[dungeons.maisaraCaverns] = {
+			CauterizingFlame,
+			Zephyr,
+		}
+
+		self.zoneIdToSpellIdsMap[dungeons.nexusPointXenas] = {
+			CauterizingFlame,
+			Zephyr,
+		}
+
+		self.zoneIdToSpellIdsMap[dungeons.pitOfSaron] = {
+			CauterizingFlame,
+			Zephyr,
+		}
+
+		self.zoneIdToSpellIdsMap[dungeons.seatOfTheTriumvirate] = {
+			CauterizingFlame,
+			Zephyr,
+		}
+
+		self.zoneIdToSpellIdsMap[dungeons.skyreach] = {
+			CauterizingFlame,
+			Zephyr,
+		}
+
+
+
+		self.zoneIdToSpellIdsMap[dungeons.windrunnersSpire] = {
+			CauterizingFlame,
+			Zephyr,
+		}
+
+		self.zoneIdToSpellIdsMap[dungeons.magistersTerrace] = {
+			Zephyr,
+		}
+
+			if specId == 1473 then
+			table.insert(self.zoneIdToSpellIdsMap[dungeons.algetharAcademy], BestowWeyrnstone)
+			table.insert(self.zoneIdToSpellIdsMap[dungeons.skyreach], BestowWeyrnstone)
 		end
-
-		zoneIdToSpellIdsMap[dungeons.maisaraCaverns] = {
-			CauterizingFlame,
-			Zephyr,
-		}
-
-		zoneIdToSpellIdsMap[dungeons.nexusPointXenas] = {
-			CauterizingFlame,
-			Zephyr,
-		}
-
-		zoneIdToSpellIdsMap[dungeons.pitOfSaron] = {
-			CauterizingFlame,
-			Zephyr,
-		}
-
-		zoneIdToSpellIdsMap[dungeons.seatOfTheTriumvirate] = {
-			CauterizingFlame,
-			Zephyr,
-		}
-
-		zoneIdToSpellIdsMap[dungeons.skyreach] = {
-			CauterizingFlame,
-			Zephyr,
-		}
-
-		zoneIdToSpellIdsMap[dungeons.windrunnersSpire] = {
-			CauterizingFlame,
-			Zephyr,
-		}
-
-		zoneIdToSpellIdsMap[dungeons.magistersTerrace] = {
-			Zephyr,
-		}
-
-		shouldLoad = true
 	end
 end
-
-if not shouldLoad then
-	return
-end
-
-local frame = CreateFrame("Frame")
-frame.lastMapId = nil
-frame.pattern = "Consider talenting the following spells: %s"
 
 frame:RegisterEvent("ZONE_CHANGED")
 frame:RegisterEvent("LOADING_SCREEN_DISABLED")
 frame:RegisterEvent("READY_CHECK")
 
-frame:SetScript("OnEvent", function(self, event, ...)
+frame:SetScript("OnEvent", function(self, event)
 	if event == "ZONE_CHANGED" or event == "LOADING_SCREEN_DISABLED" or event == "READY_CHECK" then
 		if C_ChallengeMode.IsChallengeModeActive() or InCombatLockdown() then
 			return
 		end
 
+		self:BuildReminders()
+
 		local mapId = C_Map.GetBestMapForUnit("player")
 
-		if mapId == nil or frame.lastMapId == mapId or zoneIdToSpellIdsMap[mapId] == nil then
+		if mapId == nil or self.lastMapId == mapId or self.zoneIdToSpellIdsMap[mapId] == nil then
 			return
 		end
 
-		frame.lastMapId = mapId
+		self.lastMapId = mapId
 
-		local spells = zoneIdToSpellIdsMap[mapId]
+		local spells = self.zoneIdToSpellIdsMap[mapId]
 		local spellNames = {}
 		local spellLinks = {}
 
@@ -126,13 +123,13 @@ frame:SetScript("OnEvent", function(self, event, ...)
 			return
 		end
 
-		print(frame.pattern:format(table.concat(spellLinks, ", ")))
+		print(self.pattern:format(table.concat(spellLinks, ", ")))
 
 		for _, v in pairs(C_VoiceChat.GetTtsVoices()) do
 			if string.find(v.name, "English") then
 				C_VoiceChat.SpeakText(
 					v.voiceID,
-					frame.pattern:format(table.concat(spellNames, ", ")),
+					self.pattern:format(table.concat(spellNames, ", ")),
 					3,
 					C_TTSSettings.GetSpeechVolume()
 				)

@@ -1,10 +1,9 @@
-local addonName, Private = ...
-
 local lastGroupSize = 0
 
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("GROUP_JOINED")
 frame:RegisterEvent("GROUP_ROSTER_UPDATE")
+frame.timer = nil
 
 function frame:DoGreeting()
 	if not InCombatLockdown() then
@@ -24,7 +23,12 @@ function frame:GreetAfterCombat()
 	if InCombatLockdown() then
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 	else
-		C_Timer.After(2, GenerateClosure(self.DoGreeting, self))
+		if self.timer then
+			self.timer:Cancel()
+			self.timer = nil
+		end
+
+		self.timer = C_Timer.NewTimer(2, GenerateClosure(self.DoGreeting, self))
 	end
 end
 
@@ -36,7 +40,9 @@ frame:SetScript("OnEvent", function(self, event)
 		if IsInRaid() then
 			return
 		end
+
 		lastGroupSize = GetNumGroupMembers()
+
 		self:GreetAfterCombat()
 	elseif event == "GROUP_ROSTER_UPDATE" then
 		if IsInRaid() then
