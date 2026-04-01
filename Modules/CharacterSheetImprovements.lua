@@ -24,28 +24,6 @@ hooksecurefunc("NotifyInspect", function(unit)
 	lastInspectGuid = UnitGUID(unit)
 end)
 
----@param level number
----@return string
-local function GetRarityColor(level)
-	if level < 691 then
-		return "FFFFFFFF"
-	end
-
-	if level < 704 then
-		return "FF1EFF00"
-	end
-
-	if level < 710 then
-		return "FF0070DD"
-	end
-
-	if level < 723 then
-		return "FFA335EE"
-	end
-
-	return "FFFF8000"
-end
-
 ---@type table<number, string>
 local slotNameMap = {
 	[Enum.InventoryType.IndexHeadType] = "Head",
@@ -234,9 +212,8 @@ local function UpdateSlot(unit, slot)
 		end
 
 		local averageLevel = C_PaperDollInfo.GetInspectItemLevel(unit)
-		local rarityColor = GetRarityColor(averageLevel)
 
-		AverageItemLevelText:SetText("|c" .. rarityColor .. averageLevel .. "|r")
+		AverageItemLevelText:SetText("|cFFFFFFFF" .. averageLevel .. "|r")
 		AverageItemLevelText:Show()
 	end
 
@@ -356,6 +333,12 @@ PaperDollFrame:HookScript("OnShow", function(self)
 	end
 
 	characterOpen = true
+
+	local maxItemLevel, equippedItemLevel = GetAverageItemLevel()
+	local str = maxItemLevel == equippedItemLevel and string.format("%.2f", equippedItemLevel)
+		or string.format("%.2fE - %.2fB", equippedItemLevel, maxItemLevel)
+
+	CharacterStatsPane.ItemLevelFrame.Value:SetText(str)
 end)
 
 PaperDollFrame:HookScript("OnHide", function(self)
