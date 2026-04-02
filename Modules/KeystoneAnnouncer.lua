@@ -5,6 +5,7 @@ frame.level = nil
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("BAG_UPDATE_DELAYED")
 frame:RegisterEvent("GOSSIP_CONFIRM")
+frame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
 
 function frame:ScanForKeystone()
 	local level = C_MythicPlus.GetOwnedKeystoneLevel() or 0
@@ -14,7 +15,7 @@ function frame:ScanForKeystone()
 end
 
 function frame:AnnounceKeystone(mapId, level)
-	if not IsInGroup() or IsInRaid() or mapId == 0 or level == 0 then
+	if not IsInGroup() or IsInRaid() or mapId == 0 or level == 0 or C_ChallengeMode.IsChallengeModeActive() then
 		return
 	end
 
@@ -40,7 +41,7 @@ frame:SetScript("OnEvent", function(self, event, id)
 		if id == 107538 then
 			self:RegisterEvent("GOSSIP_CONFIRM_CANCEL")
 		end
-	elseif event == "GOSSIP_CONFIRM_CANCEL" then
+	elseif event == "GOSSIP_CONFIRM_CANCEL" or event == "CHALLENGE_MODE_COMPLETED" then
 		self:UnregisterEvent("GOSSIP_CONFIRM_CANCEL")
 
 		C_Timer.NewTimer(1, function()

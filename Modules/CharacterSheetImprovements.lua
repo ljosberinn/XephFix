@@ -326,6 +326,14 @@ local function UpdateAllSlots(unit)
 	end
 end
 
+hooksecurefunc("PaperDollFrame_UpdateStats", function()
+	local maxItemLevel, equippedItemLevel = GetAverageItemLevel()
+	local str = maxItemLevel == equippedItemLevel and string.format("%.2f", equippedItemLevel)
+		or string.format("%.2fE - %.2fB", equippedItemLevel, maxItemLevel)
+
+	CharacterStatsPane.ItemLevelFrame.Value:SetText(str)
+end)
+
 -- instead of using triggers, just run when the character frame is shown
 PaperDollFrame:HookScript("OnShow", function(self)
 	if not characterOpen then -- OnShow can be called multiple times?
@@ -333,12 +341,6 @@ PaperDollFrame:HookScript("OnShow", function(self)
 	end
 
 	characterOpen = true
-
-	local maxItemLevel, equippedItemLevel = GetAverageItemLevel()
-	local str = maxItemLevel == equippedItemLevel and string.format("%.2f", equippedItemLevel)
-		or string.format("%.2fE - %.2fB", equippedItemLevel, maxItemLevel)
-
-	CharacterStatsPane.ItemLevelFrame.Value:SetText(str)
 end)
 
 PaperDollFrame:HookScript("OnHide", function(self)

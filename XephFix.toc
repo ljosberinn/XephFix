@@ -18,6 +18,8 @@ Modules/FocusMarkerAnnouncement.lua
 Modules/GearUpgradeRankTooltipRenamer.lua
 Modules/GearUpgradeReminder.lua
 Modules/HiddenQuestCleanup.lua
+Modules/KeystoneAnnouncer.lua
+Modules/KeystoneInfo.lua
 Modules/MDTSim.lua
 Modules/Stopwatch.lua
 Modules/TargetShield.lua
