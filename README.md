@@ -22,6 +22,10 @@ The following modules are enabled for everyone by default:
 - DraggableFrames
   - makes a couple additional default ui frames draggable
     - applies to Spellbook and the Group Finder
+- FastLoot
+  - self explaining; doesn't execute if you have Plumber or LeatrixPlus
+- FocusMarkerAnnouncement
+  - announces your focus marker assuming you have a /tm macro wtih the name `focus`
 - GearUpgradeRankTooltipRenamer
   - port of https://wago.io/78z7JtUxS
 - GearUpgradeReminder
@@ -29,6 +33,13 @@ The following modules are enabled for everyone by default:
 - HiddenQuestCleanup
   - automatically unwatches hidden watched quests
   - sounds stupid - but this, based on unknown factors - can be a significant performance improvement, I personally gained ~9 fps in dornogal
+- KeystoneAnnouncer
+  - automatically announces your key when you reroll it or at the end of a dungeon and it was your key that was completed
+- KeystoneInfo
+  - lean implementation of the /key command
+  - doesn't execute if you have BigWigs
+  - communicates your keystone info to others with e.g. BigWigs
+  - adds /key and prints your parties data
 - MirrorContainerFix
   - fixes the Breath & Fatigue frame not showing despite losing either or both of them
 - MDTSim
@@ -45,6 +56,8 @@ The following modules are ONLY ACTIVE IF YOUR CHARACTER NAME MATCHES MINE:
 
 - CleanNamesInInstances
   - port of https://wago.io/M13VlqtM-
+- DamageMeterToggle
+  - automatically shows the damage meter in dungeons, but hides it outside
 - Stopwatch
   - modifies the ingame stopwatch to act as combat timer. has ui elemenets hidden such as hours, buttons and background
 - TargetShield
