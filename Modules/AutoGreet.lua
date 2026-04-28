@@ -6,7 +6,7 @@ frame:RegisterEvent("GROUP_ROSTER_UPDATE")
 frame.timer = nil
 
 function frame:DoGreeting()
-	if not InCombatLockdown() then
+	if not InCombatLockdown() and not C_ChallengeMode.IsChallengeModeActive() then
 		local num = math.random(1, 100)
 		local greeting = "hi"
 		if num <= 5 then
@@ -20,6 +20,10 @@ function frame:DoGreeting()
 end
 
 function frame:GreetAfterCombat()
+	if C_ChallengeMode.IsChallengeModeActive() then
+		return
+	end
+
 	if InCombatLockdown() then
 		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 	else

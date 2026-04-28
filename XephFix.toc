@@ -1,4 +1,4 @@
-## Interface: 120001, 120005
+## Interface: 120005, 120007
 ## Title: XephFix
 ## DefaultState: Enabled
 
@@ -8,10 +8,12 @@ Modules/AddonSuiteProfileSwapReminder.lua
 Modules/AutoGreet.lua
 Modules/BuffWarningPatch.lua
 Modules/CharacterSheetImprovements.lua
+Modules/CharacterStatsFormatting.lua
 Modules/CleanNamesInInstances.lua
 Modules/CooldownManagerMountOpacity.lua
 Modules/DamageMeterToggle.lua
 Modules/DraggableFrames.lua
+Modules/EventToastBlocker.lua
 Modules/EvokerLetFly.lua
 Modules/FastLoot.lua
 Modules/FocusMarkerAnnouncement.lua
@@ -25,4 +27,5 @@ Modules/Stopwatch.lua
 Modules/TargetShield.lua
 Modules/TalentReminders.lua
 Modules/UIScale.lua
+Modules/Vaelgor.lua
 Modules/WeakAuras.lua

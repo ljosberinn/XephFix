@@ -329,7 +329,7 @@ end
 hooksecurefunc("PaperDollFrame_UpdateStats", function()
 	local maxItemLevel, equippedItemLevel = GetAverageItemLevel()
 	local str = maxItemLevel == equippedItemLevel and string.format("%.2f", equippedItemLevel)
-		or string.format("%.2fE - %.2fB", equippedItemLevel, maxItemLevel)
+		or string.format("%.2f/%.2f", equippedItemLevel, maxItemLevel)
 
 	CharacterStatsPane.ItemLevelFrame.Value:SetText(str)
 end)

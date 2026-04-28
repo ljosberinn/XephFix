@@ -67,8 +67,6 @@ function frame:BuildReminders()
 			Zephyr,
 		}
 
-
-
 		self.zoneIdToSpellIdsMap[dungeons.windrunnersSpire] = {
 			CauterizingFlame,
 			Zephyr,
@@ -78,9 +76,11 @@ function frame:BuildReminders()
 			Zephyr,
 		}
 
-			if specId == 1473 then
-			table.insert(self.zoneIdToSpellIdsMap[dungeons.algetharAcademy], BestowWeyrnstone)
+		if specId == 1473 then
+			-- table.insert(self.zoneIdToSpellIdsMap[dungeons.algetharAcademy], BestowWeyrnstone)
+			table.insert(self.zoneIdToSpellIdsMap[dungeons.pitOfSaron], BestowWeyrnstone)
 			table.insert(self.zoneIdToSpellIdsMap[dungeons.skyreach], BestowWeyrnstone)
+			table.insert(self.zoneIdToSpellIdsMap[dungeons.magistersTerrace], BestowWeyrnstone)
 		end
 	end
 end
