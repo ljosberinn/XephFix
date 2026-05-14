@@ -39,11 +39,10 @@ The following modules are enabled for everyone by default:
   - lean implementation of the /key command
   - doesn't execute if you have BigWigs
   - communicates your keystone info to others with e.g. BigWigs
-  - adds /key and prints your parties data
-- MirrorContainerFix
-  - fixes the Breath & Fatigue frame not showing despite losing either or both of them
 - MDTSim
   - port of https://wago.io/LTwpBiuz_
+- MillisecondsCooldownManagerAuras
+  - enables rendering milliseconds for Cooldown Manager auras, by default showing < 3 seconds
 - TalentReminders
   - plays TTS when entering Midnight dungeons and you're missing certain talents
   - only implemented for evoker, doesn't do anything if you're not an evoker
