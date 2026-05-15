@@ -61,19 +61,13 @@ table.insert(Private.LoginFnQueue, function()
 			end)
 		end
 
-		function frame:UpdateEventRegistration()
-			if C_Item.IsEquippedItem(NULLSIGHT_ITEM_ID) then
-				self:RegisterEvent("PLAYER_DEAD")
-				self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
-			else
-				self:UnregisterEvent("PLAYER_DEAD")
-				self:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+		local function Teardown(self)
+			if self.timer then
+				self.timer:Cancel()
+				self.timer = nil
+			end
 
-				if self.timer then
-					self.timer:Cancel()
-					self.timer = nil
-				end
-
+			if self.layoutIndex then
 				self:Hide()
 				self.layoutIndex = nil
 				CooldownFrame_Clear(self.Cooldown)
@@ -81,18 +75,22 @@ table.insert(Private.LoginFnQueue, function()
 			end
 		end
 
+		function frame:UpdateEventRegistration()
+			if C_Item.IsEquippedItem(NULLSIGHT_ITEM_ID) then
+				self:RegisterEvent("PLAYER_DEAD")
+				self:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+			else
+				self:UnregisterEvent("PLAYER_DEAD")
+				self:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+				Teardown(self)
+			end
+		end
+
 		frame:SetScript("OnEvent", function(self, event, ...)
 			if event == "PLAYER_EQUIPMENT_CHANGED" or event == "LOADING_SCREEN_DISABLED" then
 				self:UpdateEventRegistration()
 			elseif event == "PLAYER_DEAD" then
-				if self.timer then
-					self.timer:Cancel()
-					self.timer = nil
-				end
-				self:Hide()
-				self.layoutIndex = nil
-				CooldownFrame_Clear(self.Cooldown)
-				self:TriggerCMCCenterUpdate()
+				Teardown(self)
 			elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
 				local _, _, spellId = ...
 
@@ -130,10 +128,7 @@ table.insert(Private.LoginFnQueue, function()
 				self:TriggerCMCCenterUpdate()
 
 				self.timer = C_Timer.NewTimer(NULLSIGHT_DURATION, function()
-					self:Hide()
-					self.layoutIndex = nil
-					CooldownFrame_Clear(self.Cooldown)
-					self:TriggerCMCCenterUpdate()
+					Teardown(self)
 					self.timer = nil
 				end)
 			end
