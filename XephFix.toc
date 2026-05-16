@@ -23,7 +23,7 @@ Modules/HiddenQuestCleanup.lua
 Modules/KeystoneAnnouncer.lua
 Modules/KeystoneInfo.lua
 Modules/MDTSim.lua
-Modules/MillisecondsCooldownManagerAuras.lua
+Modules/MillisecondsCooldownManager.lua
 Modules/Stopwatch.lua
 Modules/TargetShield.lua
 Modules/TalentReminders.lua

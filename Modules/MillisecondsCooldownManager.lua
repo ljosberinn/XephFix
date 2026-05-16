@@ -24,7 +24,8 @@ EventUtil.ContinueOnAddOnLoaded("Blizzard_CooldownViewer", function()
 	end
 
 	hooksecurefunc(CooldownViewerBuffIconItemMixin, "OnLoad", SetupBuffIconItem)
-	hooksecurefunc(CooldownViewerCooldownItemMixin, "OnLoad", SetupCooldownItem)
+	hooksecurefunc(CooldownViewerEssentialItemMixin, "OnLoad", SetupCooldownItem)
+	hooksecurefunc(CooldownViewerUtilityItemMixin, "OnLoad", SetupCooldownItem)
 
 	for _, child in ipairs({ BuffIconCooldownViewer:GetChildren() }) do
 		SetupBuffIconItem(child)
