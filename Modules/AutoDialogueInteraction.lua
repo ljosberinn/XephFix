@@ -35,7 +35,7 @@ table.insert(Private.LoginFnQueue, function()
 
             for i = 1, #options do
                 if gossipIdsToAutoSelect[options[i].gossipOptionID] then
-                    C_GossipInfo.SelectOption(i, "")
+                    C_GossipInfo.SelectOption(options[i].gossipOptionID, "")
                     return
                 end
             end
