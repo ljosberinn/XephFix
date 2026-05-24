@@ -5,10 +5,14 @@
 Init.lua
 
 Modules/AddonSuiteProfileSwapReminder.lua
+Modules/AutoDialogueInteraction.lua
 Modules/AutoGreet.lua
+Modules/AutoKeystone.lua
+Modules/AutoRoleSelect.lua
 Modules/BuffWarningPatch.lua
 Modules/CharacterSheetImprovements.lua
 Modules/CharacterStatsFormatting.lua
+Modules/ChatItemEnhancements.lua
 Modules/CleanNamesInInstances.lua
 Modules/CooldownManagerMountOpacity.lua
 Modules/DamageMeterToggle.lua
@@ -24,9 +28,11 @@ Modules/KeystoneAnnouncer.lua
 Modules/KeystoneInfo.lua
 Modules/MDTSim.lua
 Modules/MillisecondsCooldownManager.lua
+Modules/CooldownManagerTweaks.lua
 Modules/Stopwatch.lua
 Modules/TargetShield.lua
 Modules/TalentReminders.lua
+Modules/TooltipItemID.lua
 Modules/UIScale.lua
 Modules/Vaelgor.lua
 Modules/WeakAuras.lua

@@ -1,5 +1,3 @@
-local addonName, Private = ...
-
 EventUtil.ContinueOnAddOnLoaded("MythicDungeonTools", function()
 	if not MDT then
 		return
@@ -43,7 +41,7 @@ EventUtil.ContinueOnAddOnLoaded("MythicDungeonTools", function()
 			MDT.mdt_sim.success_message = "MDT Sim: Route exported, copy text and then use ESC to close the window."
 		else
 			MDT.mdt_sim.success_message =
-				"MDT Sim: Group and route exported, copy text and then use ESC to close the window."
+			"MDT Sim: Group and route exported, copy text and then use ESC to close the window."
 		end
 
 		MDT.mdt_sim.pending_inspects = {}
@@ -558,7 +556,8 @@ EventUtil.ContinueOnAddOnLoaded("MythicDungeonTools", function()
 														and MDT.dungeonEnemies[preset.value.currentDungeonIdx][enemyIndex]
 													then
 														local lieutenant =
-															MDT.dungeonEnemies[preset.value.currentDungeonIdx][enemyIndex]
+															MDT.dungeonEnemies[preset.value.currentDungeonIdx]
+															[enemyIndex]
 														for _, cloneIndex in pairs(enemyClones) do
 															if
 																lieutenant.clones[cloneIndex]
@@ -612,7 +611,8 @@ EventUtil.ContinueOnAddOnLoaded("MythicDungeonTools", function()
 														and MDT.dungeonEnemies[preset.value.currentDungeonIdx][enemyIndex]
 													then
 														local boss =
-															MDT.dungeonEnemies[preset.value.currentDungeonIdx][enemyIndex]
+															MDT.dungeonEnemies[preset.value.currentDungeonIdx]
+															[enemyIndex]
 														for _, cloneIndex in pairs(enemyClones) do
 															if
 																boss.clones[cloneIndex]

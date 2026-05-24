@@ -25,9 +25,11 @@ table.insert(Private.LoginFnQueue, function()
 	end
 
 	local frame = CreateFrame("Frame")
+
 	frame:RegisterEvent("LOADING_SCREEN_DISABLED")
 	frame:RegisterEvent("UI_SCALE_CHANGED")
 	frame:RegisterEvent("DISPLAY_SIZE_CHANGED")
+
 	frame:SetScript("OnEvent", function(self, event, ...)
 		if event == "PLAYER_REGEN_ENABLED" then
 			C_Timer.After(0.5, function()
@@ -57,15 +59,9 @@ table.insert(Private.LoginFnQueue, function()
 			local newWidth, newHeight = GetPhysicalScreenSize()
 			if newWidth ~= currentWidth or newHeight ~= currentHeight then
 				print(
-					"Resolution changed from "
-						.. currentWidth
-						.. "x"
-						.. currentHeight
-						.. " to "
-						.. newWidth
-						.. "x"
-						.. newHeight
-				)
+					string.format("Resolution changed from %dx%d to %dx%d", currentWidth, currentHeight, newWidth,
+						newHeight
+					))
 				currentWidth, currentHeight = newWidth, newHeight
 				-- Reapply saved scale
 				Scale(expectedScale)
