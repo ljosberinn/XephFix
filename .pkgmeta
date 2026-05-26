@@ -1,0 +1,4 @@
+ignore:
+  - .github
+  - .stylua.toml
+  - README.md

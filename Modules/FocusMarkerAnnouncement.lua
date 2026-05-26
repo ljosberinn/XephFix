@@ -1,6 +1,10 @@
 local addonName, Private = ...
 
 table.insert(Private.LoginFnQueue, function()
+	if not XephUISaved.FocusMarkerAnnouncement then
+		return
+	end
+
 	local macroName = "focus"
 
 	local function ExtractMarkerFromMacro()
@@ -22,7 +26,7 @@ table.insert(Private.LoginFnQueue, function()
 	end
 
 	print(
-		"[XephFix] FocusMarkerAnnouncement attempts to extract the target marker you're using from a macro called 'focus'. If you don't use focus, it won't do anything. If you wish to disable this message, disable FocusMarkerAnnouncement.lua"
+		"[XephUI] FocusMarkerAnnouncement attempts to extract the target marker you're using from a macro called 'focus'. If you don't use focus, it won't do anything. If you wish to disable this message, disable FocusMarkerAnnouncement.lua"
 	)
 
 	local frame = CreateFrame("Frame")

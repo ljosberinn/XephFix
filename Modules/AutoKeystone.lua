@@ -1,22 +1,30 @@
-local KEYSTONE_ITEM_IDS = {
-	[180653] = true,
-	[151086] = true,
-}
+local addonName, Private = ...
 
-local frame = CreateFrame("Frame")
+table.insert(Private.LoginFnQueue, function()
+	if not XephUISaved.AutoKeystone then
+		return
+	end
 
-frame:RegisterEvent("CHALLENGE_MODE_KEYSTONE_RECEPTABLE_OPEN")
+	local KEYSTONE_ITEM_IDS = {
+		[180653] = true,
+		[151086] = true,
+	}
 
-frame:SetScript("OnEvent", function()
-	for bag = BACKPACK_CONTAINER, NUM_TOTAL_EQUIPPED_BAG_SLOTS do
-		for slot = 1, C_Container.GetContainerNumSlots(bag) do
-			local itemID = C_Container.GetContainerItemID(bag, slot)
+	local frame = CreateFrame("Frame")
 
-			if itemID and KEYSTONE_ITEM_IDS[itemID] then
-				C_Container.UseContainerItem(bag, slot)
-				CloseAllBags()
-				return
+	frame:RegisterEvent("CHALLENGE_MODE_KEYSTONE_RECEPTABLE_OPEN")
+
+	frame:SetScript("OnEvent", function()
+		for bag = BACKPACK_CONTAINER, NUM_TOTAL_EQUIPPED_BAG_SLOTS do
+			for slot = 1, C_Container.GetContainerNumSlots(bag) do
+				local itemID = C_Container.GetContainerItemID(bag, slot)
+
+				if itemID and KEYSTONE_ITEM_IDS[itemID] then
+					C_Container.UseContainerItem(bag, slot)
+					CloseAllBags()
+					return
+				end
 			end
 		end
-	end
+	end)
 end)

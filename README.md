@@ -2,26 +2,52 @@ Collection of former utiltiy WeakAuras or similar.
 
 ## How To Disable A Module For Yourself
 
-- edit the `XephFix.toc` file and remove the file name you want to disable, then reload, that's all
+Find the feature you wish to disable in the TOC-file. Either remove it from there, or if you wish to not having to edit files, run:
+
+```lua
+-- Stopwatch as example
+/run XephUISaved.Stopwatch = false
+/reload
+```
 
 ## Modules
-
-The following modules are enabled for everyone by default:
 
 - AddonSuiteProfileSwapReminder
   - only loads if you have the addon `AddonSuite` installed
   - reminder for myself to swap addon profile depending on whether I'm in raid or not
+- AutoDialogueInteraction
+  - automatically selects specific gossip options in certain dungeons (Pit of Saron, Algeth'ar Academy, etc.)
 - AutoGreet
   - the equivalent of /p hi
+- AutoKeystone
+  - automatically inserts your keystone into the receptacle when it opens
+- AutoRoleSelect
+  - automatically confirms role check popups based on your current specialization
 - BuffWarningPatch
   - removes the stupid alpha change for expiring auras
 - CharacterSheetImprovements
   - extends the default ui character sheed with enchants, gems, and item level
+- CharacterStatsFormatting
+  - shows raw combat rating alongside the percentage for secondary stats on the character sheet
+- ChatItemEnhancements
+  - prepends item icons to item links in chat and appends slot type and item level to the label
+- CleanNamesInInstances
+  - port of https://wago.io/M13VlqtM-
 - CooldownManagerMountOpacity
   - changes the opacity of the cooldown manager when mounted out of combat to 0.25
+- CooldownManagerTweaks
+  - reskins cooldown manager icons to square with a custom font and black border
+  - enables millisecond countdown display below 4 seconds for all viewers
+  - supports injecting custom item-triggered auras into the buff icon viewer
+- DamageMeterToggle
+  - automatically shows the damage meter in dungeons, but hides it outside
 - DraggableFrames
   - makes a couple additional default ui frames draggable
     - applies to Spellbook and the Group Finder
+- EventToastBlocker
+  - suppresses specific event toast popups (waystone discovery, new stage notifications)
+- EvokerLetFly
+  - evoker only: mutes the default Deep Breath / Breath of Eons voice lines and plays a custom sound instead
 - FastLoot
   - self explaining; doesn't execute if you have Plumber or LeatrixPlus
 - FocusMarkerAnnouncement
@@ -41,26 +67,15 @@ The following modules are enabled for everyone by default:
   - communicates your keystone info to others with e.g. BigWigs
 - MDTSim
   - port of https://wago.io/LTwpBiuz_
-- MillisecondsCooldownManagerAuras
-  - enables rendering milliseconds for Cooldown Manager auras, by default showing < 3 seconds
+- Stopwatch
+  - modifies the ingame stopwatch to act as combat timer. has ui elemenets hidden such as hours, buttons and background
 - TalentReminders
   - plays TTS when entering Midnight dungeons and you're missing certain talents
   - only implemented for evoker, doesn't do anything if you're not an evoker
-- TurnSpeed
-  - reverts turn speed back to 180 should it get lowered
-- WeakAuras
-  - /wa binding for the cooldown manager...
-
-The following modules are ONLY ACTIVE IF YOUR CHARACTER NAME MATCHES MINE:
-
-- CleanNamesInInstances
-  - port of https://wago.io/M13VlqtM-
-- DamageMeterToggle
-  - automatically shows the damage meter in dungeons, but hides it outside
-- Stopwatch
-  - modifies the ingame stopwatch to act as combat timer. has ui elemenets hidden such as hours, buttons and background
 - TargetShield
   - shows remaining amount of absorb on the target
+- TooltipIDs
+  - appends item ID and spell ID to their respective tooltips
 - UIScale
   - port of !UIScale addon, but doesn't throw an error when reloading ui mid-combat
   - set to 1440p resolution

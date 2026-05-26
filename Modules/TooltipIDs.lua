@@ -1,33 +1,41 @@
-TooltipDataProcessor.AddTooltipPostCall(TooltipDataProcessor.AllTypes, function(tooltip, data)
-	if not data or not data.id or issecretvalue(data.type) then
+local addonName, Private = ...
+
+table.insert(Private.LoginFnQueue, function()
+	if not XephUISaved.TooltipIDs then
 		return
 	end
 
-	local lineAdded = false
+	TooltipDataProcessor.AddTooltipPostCall(TooltipDataProcessor.AllTypes, function(tooltip, data)
+		if not data or not data.id or issecretvalue(data.type) then
+			return
+		end
 
-	if tooltip.GetItem then
-		local _, link = tooltip:GetItem()
+		local lineAdded = false
 
-		if link then
-			local itemID = link:match("item:(%d+)")
+		if tooltip.GetItem then
+			local _, link = tooltip:GetItem()
 
-			if itemID then
-				tooltip:AddDoubleLine("Item ID", itemID, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
+			if link then
+				local itemID = link:match("item:(%d+)")
+
+				if itemID then
+					tooltip:AddDoubleLine("Item ID", itemID, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
+					lineAdded = true
+				end
+			end
+		end
+
+		if tooltip.GetSpell then
+			local _, spellID = tooltip:GetSpell()
+
+			if spellID then
+				tooltip:AddDoubleLine("Spell ID", spellID, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
 				lineAdded = true
 			end
 		end
-	end
 
-	if tooltip.GetSpell then
-		local _, spellID = tooltip:GetSpell()
-
-		if spellID then
-			tooltip:AddDoubleLine("Spell ID", spellID, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
-			lineAdded = true
+		if lineAdded then
+			tooltip:Show()
 		end
-	end
-
-	if lineAdded then
-		tooltip:Show()
-	end
+	end)
 end)

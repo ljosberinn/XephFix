@@ -1,6 +1,11 @@
 ## Interface: 120005, 120007
-## Title: XephFix
+## Title: XephUI
 ## DefaultState: Enabled
+## Author: Xephyris-Blackrock-EU
+## Version: @project-version@
+## SavedVariables: XephUISaved
+
+## X-Curse-Project-ID: 1554857
 
 Init.lua
 
@@ -27,11 +32,9 @@ Modules/HiddenQuestCleanup.lua
 Modules/KeystoneAnnouncer.lua
 Modules/KeystoneInfo.lua
 Modules/MDTSim.lua
-Modules/MillisecondsCooldownManager.lua
 Modules/CooldownManagerTweaks.lua
 Modules/Stopwatch.lua
 Modules/TargetShield.lua
 Modules/TalentReminders.lua
 Modules/TooltipIDs.lua
 Modules/UIScale.lua
-Modules/WeakAuras.lua

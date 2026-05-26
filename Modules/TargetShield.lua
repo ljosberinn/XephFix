@@ -1,7 +1,7 @@
 local addonName, Private = ...
 
 table.insert(Private.LoginFnQueue, function()
-	if not Private.IsXeph then
+	if not XephUISaved.TargetShield then
 		return
 	end
 

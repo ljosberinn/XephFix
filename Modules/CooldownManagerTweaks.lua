@@ -1,7 +1,7 @@
 local addonName, Private = ...
 
 table.insert(Private.LoginFnQueue, function()
-	if not Private.IsXeph then
+	if not XephUISaved.CooldownManagerTweaks then
 		return
 	end
 
@@ -508,17 +508,44 @@ table.insert(Private.LoginFnQueue, function()
 		end
 	end)
 
+	local function SetupBuffIconItem(item)
+		local cd = item.Cooldown
+
+		if not cd then
+			return
+		end
+
+		cd:SetCountdownFont("GameFontHighlightOutline")
+		cd:SetCountdownMillisecondsThreshold(4)
+		cd:SetUseAuraDisplayTime(true)
+	end
+
+	-- Essential and Utility items already have their font set via cooldownFont KeyValues;
+	-- only the threshold needs to be added here.
+	local function SetupCooldownItem(item)
+		local cd = item.Cooldown
+
+		if not cd then
+			return
+		end
+
+		cd:SetCountdownMillisecondsThreshold(4)
+	end
+
 	EventUtil.ContinueOnAddOnLoaded("Blizzard_CooldownViewer", function()
 		hooksecurefunc(CooldownViewerEssentialItemMixin, "OnLoad", function(self)
 			StyleButton(self, "EssentialCooldownViewer")
+			SetupCooldownItem(self)
 		end)
 
 		hooksecurefunc(CooldownViewerUtilityItemMixin, "OnLoad", function(self)
 			StyleButton(self, "UtilityCooldownViewer")
+			SetupCooldownItem(self)
 		end)
 
 		hooksecurefunc(CooldownViewerBuffIconItemMixin, "OnLoad", function(self)
 			StyleButton(self, "BuffIconCooldownViewer")
+			SetupBuffIconItem(self)
 		end)
 
 		hooksecurefunc(EssentialCooldownViewer, "RefreshLayout", function()
@@ -539,5 +566,21 @@ table.insert(Private.LoginFnQueue, function()
 		StyleViewer(BuffIconCooldownViewer, "BuffIconCooldownViewer")
 
 		RecenterBuffIcons()
+
+		-- hooksecurefunc(CooldownViewerBuffIconItemMixin, "OnLoad", SetupBuffIconItem)
+		-- hooksecurefunc(CooldownViewerEssentialItemMixin, "OnLoad", SetupCooldownItem)
+		-- hooksecurefunc(CooldownViewerUtilityItemMixin, "OnLoad", SetupCooldownItem)
+
+		for _, child in ipairs({ BuffIconCooldownViewer:GetChildren() }) do
+			SetupBuffIconItem(child)
+		end
+
+		for _, child in ipairs({ EssentialCooldownViewer:GetChildren() }) do
+			SetupCooldownItem(child)
+		end
+
+		for _, child in ipairs({ UtilityCooldownViewer:GetChildren() }) do
+			SetupCooldownItem(child)
+		end
 	end)
 end)

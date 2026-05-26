@@ -1,30 +1,38 @@
-local frame = CreateFrame("Frame")
+local addonName, Private = ...
 
-frame:RegisterEvent("LFG_ROLE_CHECK_SHOW")
-
-frame:SetScript("OnEvent", function()
-	local role = UnitGroupRolesAssigned("player")
-
-	if role == "NONE" then
-		role = GetSpecializationRole(C_SpecializationInfo.GetSpecialization())
+table.insert(Private.LoginFnQueue, function()
+	if not XephUISaved.AutoRoleSelect then
+		return
 	end
 
-	local isTank = role == "TANK"
-	local isHealer = role == "HEALER"
-	local isDPS = role == "DAMAGER"
+	local frame = CreateFrame("Frame")
 
-	if LFDRoleCheckPopupRoleButtonTank.checkButton:IsEnabled() then
-		LFDRoleCheckPopupRoleButtonTank.checkButton:SetChecked(isTank)
-	end
+	frame:RegisterEvent("LFG_ROLE_CHECK_SHOW")
 
-	if LFDRoleCheckPopupRoleButtonHealer.checkButton:IsEnabled() then
-		LFDRoleCheckPopupRoleButtonHealer.checkButton:SetChecked(isHealer)
-	end
+	frame:SetScript("OnEvent", function()
+		local role = UnitGroupRolesAssigned("player")
 
-	if LFDRoleCheckPopupRoleButtonDPS.checkButton:IsEnabled() then
-		LFDRoleCheckPopupRoleButtonDPS.checkButton:SetChecked(isDPS)
-	end
+		if role == "NONE" then
+			role = GetSpecializationRole(C_SpecializationInfo.GetSpecialization())
+		end
 
-	LFDRoleCheckPopupAcceptButton:Enable()
-	LFDRoleCheckPopupAcceptButton:Click()
+		local isTank = role == "TANK"
+		local isHealer = role == "HEALER"
+		local isDPS = role == "DAMAGER"
+
+		if LFDRoleCheckPopupRoleButtonTank.checkButton:IsEnabled() then
+			LFDRoleCheckPopupRoleButtonTank.checkButton:SetChecked(isTank)
+		end
+
+		if LFDRoleCheckPopupRoleButtonHealer.checkButton:IsEnabled() then
+			LFDRoleCheckPopupRoleButtonHealer.checkButton:SetChecked(isHealer)
+		end
+
+		if LFDRoleCheckPopupRoleButtonDPS.checkButton:IsEnabled() then
+			LFDRoleCheckPopupRoleButtonDPS.checkButton:SetChecked(isDPS)
+		end
+
+		LFDRoleCheckPopupAcceptButton:Enable()
+		LFDRoleCheckPopupAcceptButton:Click()
+	end)
 end)

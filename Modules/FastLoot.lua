@@ -1,6 +1,10 @@
-local _, Private = ...
+local addonName, Private = ...
 
 table.insert(Private.LoginFnQueue, function()
+	if not XephUISaved.FastLoot then
+		return
+	end
+
 	if C_AddOns.DoesAddOnExist("Plumber") or C_AddOns.DoesAddOnExist("Leatrix_Plus") then
 		return
 	end

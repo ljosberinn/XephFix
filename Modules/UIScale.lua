@@ -1,7 +1,7 @@
 local addonName, Private = ...
 
 table.insert(Private.LoginFnQueue, function()
-	if not Private.IsXeph then
+	if not XephUISaved.UIScale then
 		return
 	end
 
@@ -18,7 +18,7 @@ table.insert(Private.LoginFnQueue, function()
 
 		-- Don't call SetCVar during combat
 		if not InCombatLockdown() then
-			SetCVar("uiScale", numberedScale)
+			C_CVar.SetCVar("uiScale", numberedScale)
 		end
 
 		UIParent:SetScale(numberedScale)
@@ -49,7 +49,7 @@ table.insert(Private.LoginFnQueue, function()
 			end
 		elseif event == "UI_SCALE_CHANGED" then
 			C_Timer.After(0.1, function()
-				local current = tonumber(GetCVar("uiScale"))
+				local current = tonumber(C_CVar.GetCVar("uiScale"))
 
 				if math.abs(current - expectedScale) > 0.001 then
 					Scale(expectedScale)
@@ -57,6 +57,7 @@ table.insert(Private.LoginFnQueue, function()
 			end)
 		elseif event == "DISPLAY_SIZE_CHANGED" then
 			local newWidth, newHeight = GetPhysicalScreenSize()
+
 			if newWidth ~= currentWidth or newHeight ~= currentHeight then
 				print(
 					string.format("Resolution changed from %dx%d to %dx%d", currentWidth, currentHeight, newWidth,
