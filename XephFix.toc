@@ -32,7 +32,6 @@ Modules/CooldownManagerTweaks.lua
 Modules/Stopwatch.lua
 Modules/TargetShield.lua
 Modules/TalentReminders.lua
-Modules/TooltipItemID.lua
+Modules/TooltipIDs.lua
 Modules/UIScale.lua
-Modules/Vaelgor.lua
 Modules/WeakAuras.lua
