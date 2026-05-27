@@ -26,7 +26,6 @@ table.insert(Private.LoginFnQueue, function()
 		local specId = PlayerUtil.GetCurrentSpecID()
 
 		local dungeons = {
-			araKara = 2357,
 			algetharAcademy = 2097,
 			magistersTerrace = 2515,
 			maisaraCaverns = 2501,
