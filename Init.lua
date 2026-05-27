@@ -41,7 +41,6 @@ EventUtil.ContinueOnAddOnLoaded(addonName, function()
 	for key, value in pairs(defaults) do
 		if XephUISaved[key] == nil then
 			XephUISaved[key] = value
-			print("setting", key, "to", value)
 		end
 	end
 
