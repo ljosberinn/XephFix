@@ -28,7 +28,6 @@ EventUtil.ContinueOnAddOnLoaded(addonName, function()
 		KeystoneAnnouncer = true,
 		KeystoneInfo = true,
 		MDTSim = true,
-		MillisecondsCooldownManager = true,
 		Stopwatch = true,
 		TargetShield = true,
 		TalentReminders = true,
