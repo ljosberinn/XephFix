@@ -7,6 +7,9 @@
 
 ## X-Curse-Project-ID: 1554857
 
+Libs/LibKeystone/LibStub/LibStub.lua
+Libs/LibKeystone/LibKeystone/LibKeystone.lua
+
 Init.lua
 
 Modules/AddonSuiteProfileSwapReminder.lua

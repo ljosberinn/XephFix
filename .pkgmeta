@@ -1,3 +1,6 @@
+externals:
+  Libs/LibKeystone: https://github.com/BigWigsMods/LibKeystone
+
 ignore:
   - .github
   - .stylua.toml

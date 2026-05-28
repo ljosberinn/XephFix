@@ -5,50 +5,53 @@ table.insert(Private.LoginFnQueue, function()
 		return
 	end
 
-	if C_AddOns.IsAddOnLoaded("BigWigs") then
+	if C_AddOns.IsAddOnLoaded("BigWigs") or not LibStub then
 		return
 	end
 
-	local frame = CreateFrame("Frame")
+	local LKS = LibStub("LibKeystone")
+	local reportedPlayers = {}
+	local listeningForKeys = false
 
-	C_ChatInfo.RegisterAddonMessagePrefix("LibKS")
-
-	local function RequestKeystoneInfo()
-		if not IsInGroup() or IsInRaid() then
+	LKS:Register(addonName, function(keyLevel, keyChallengeMapID, playerRating, playerName)
+		if not listeningForKeys then
 			return
 		end
 
-		C_ChatInfo.SendAddonMessage("LibKS", "R", "PARTY")
+		if reportedPlayers[playerName] then
+			return
+		end
+
+		reportedPlayers[playerName] = true
+
+		local dungeonName = C_ChallengeMode.GetMapUIInfo(keyChallengeMapID) or "Unknown"
+		print(string.format("%s: +%d %s (%.0f io)", playerName, keyLevel, dungeonName, playerRating))
+	end)
+
+	SLASH_XEPHKEYS1 = "/keys"
+	SlashCmdList["XEPHKEYS"] = function()
+		if listeningForKeys or IsInRaid() or not IsInGroup() then
+			return
+		end
+
+		reportedPlayers = {}
+		listeningForKeys = true
+
+		LKS:Request("PARTY")
+
+		C_Timer.NewTimer(10, function()
+			listeningForKeys = false
+			reportedPlayers = {}
+		end)
 	end
 
-	frame:RegisterEvent("CHAT_MSG_ADDON")
+	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
-
-	frame:SetScript("OnEvent", function(self, event, prefix, msg, channel, sender)
-		if IsInRaid() then
-			return
-		end
-
+	frame:SetScript("OnEvent", function(self, event)
 		if event == "CHALLENGE_MODE_COMPLETED" then
-			C_Timer.NewTimer(3, RequestKeystoneInfo)
-		elseif event == "CHAT_MSG_ADDON" and prefix == "LibKS" and channel == "PARTY" then
-			if msg == "R" then
-				local keyLevel = C_MythicPlus.GetOwnedKeystoneLevel() or 0
-				local keyChallengeMapID = C_MythicPlus.GetOwnedKeystoneChallengeMapID() or 0
-
-				local playerRating = 0
-				local ratingSummary = C_PlayerInfo.GetPlayerMythicPlusRatingSummary("player")
-
-				if type(ratingSummary) == "table" and type(ratingSummary.currentSeasonScore) == "number" then
-					playerRating = ratingSummary.currentSeasonScore
-				end
-
-				C_ChatInfo.SendAddonMessage(
-					"LibKS",
-					string.format("%d,%d,%d", keyLevel, keyChallengeMapID, playerRating),
-					"PARTY"
-				)
-			end
+			C_Timer.NewTimer(3, function()
+				LKS:Request("PARTY")
+			end)
 		end
 	end)
 end)
