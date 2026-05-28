@@ -9,11 +9,16 @@ table.insert(Private.LoginFnQueue, function()
 		return
 	end
 
-	local LKS = LibStub("LibKeystone")
+	local LKS = LibStub("LibKeystone", true)
+
+	if not LKS then
+		return
+	end
+
 	local reportedPlayers = {}
 	local listeningForKeys = false
 
-	LKS:Register(addonName, function(keyLevel, keyChallengeMapID, playerRating, playerName)
+	LKS.Register(Private, function(keyLevel, keyChallengeMapID, playerRating, playerName)
 		if not listeningForKeys then
 			return
 		end
@@ -30,7 +35,17 @@ table.insert(Private.LoginFnQueue, function()
 
 	SLASH_XEPHKEYS1 = "/keys"
 	SlashCmdList["XEPHKEYS"] = function()
-		if listeningForKeys or IsInRaid() or not IsInGroup() then
+		if IsInRaid() then
+			print("Unavailable in raid.")
+			return
+		end
+
+		if not IsInGroup() then
+			print("Unavailable outside of a group.")
+			return
+		end
+
+		if listeningForKeys then
 			return
 		end
 

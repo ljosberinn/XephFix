@@ -1,7 +1,9 @@
 externals:
-  Libs/LibKeystone: https://github.com/BigWigsMods/LibKeystone
+Libs/LibKeystone: https://github.com/BigWigsMods/LibKeystone
 
 ignore:
-  - .github
-  - .stylua.toml
-  - README.md
+
+- .github
+- .stylua.toml
+- README.md
+- .gitignore
