@@ -156,10 +156,11 @@ table.insert(Private.LoginFnQueue, function()
 
 		if ItemTooltip == nil then
 			ItemTooltip = CreateFrame("GameTooltip", "XephScanningTooltip", WorldFrame, "GameTooltipTemplate")
-			ItemTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
-			ItemTooltip:ClearLines()
 		end
 
+		-- SetOwner must be called before every SetHyperlink; omitting it causes
+		-- the tooltip to silently stop populating after certain UI events
+		ItemTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
 		ItemTooltip:SetHyperlink(itemLink)
 
 		local enchant = ""

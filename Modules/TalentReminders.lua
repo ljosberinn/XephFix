@@ -81,6 +81,7 @@ table.insert(Private.LoginFnQueue, function()
 				CauterizingFlame,
 				Zephyr,
 				Overawe,
+				SleepWalk
 			}
 
 			zoneIdToSpellIdsMap[dungeons.magistersTerrace] = {

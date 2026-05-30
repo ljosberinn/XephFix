@@ -18,8 +18,14 @@ table.insert(Private.LoginFnQueue, function()
 	local reportedPlayers = {}
 	local listeningForKeys = false
 
+	local localPlayerName = UnitNameUnmodified("player")
+
 	LKS.Register(Private, function(keyLevel, keyChallengeMapID, playerRating, playerName)
 		if not listeningForKeys then
+			return
+		end
+
+		if playerName == localPlayerName then
 			return
 		end
 
@@ -30,7 +36,7 @@ table.insert(Private.LoginFnQueue, function()
 		reportedPlayers[playerName] = true
 
 		local dungeonName = C_ChallengeMode.GetMapUIInfo(keyChallengeMapID) or "Unknown"
-		print(string.format("%s: +%d %s (%.0f io)", playerName, keyLevel, dungeonName, playerRating))
+		print(string.format("%s: +%d %s (%.0f score)", playerName, keyLevel, dungeonName, playerRating))
 	end)
 
 	SLASH_XEPHKEYS1 = "/keys"
@@ -52,7 +58,7 @@ table.insert(Private.LoginFnQueue, function()
 		reportedPlayers = {}
 		listeningForKeys = true
 
-		LKS:Request("PARTY")
+		LKS.Request("PARTY")
 
 		C_Timer.NewTimer(10, function()
 			listeningForKeys = false
@@ -65,7 +71,7 @@ table.insert(Private.LoginFnQueue, function()
 	frame:SetScript("OnEvent", function(self, event)
 		if event == "CHALLENGE_MODE_COMPLETED" then
 			C_Timer.NewTimer(3, function()
-				LKS:Request("PARTY")
+				LKS.Request("PARTY")
 			end)
 		end
 	end)
