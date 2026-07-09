@@ -20,12 +20,34 @@ table.insert(Private.LoginFnQueue, function()
 
 	local localPlayerName = UnitNameUnmodified("player")
 
+	local function IsPlayerInParty(playerName)
+		for partyIndex = 1, GetNumGroupMembers() - 1 do
+			local partyMemberName, partyMemberRealm = UnitNameUnmodified("party" .. partyIndex)
+
+			if partyMemberName then
+				if partyMemberName == playerName then
+					return true
+				end
+
+				if partyMemberRealm and (partyMemberName .. "-" .. partyMemberRealm) == playerName then
+					return true
+				end
+			end
+		end
+
+		return false
+	end
+
 	LKS.Register(Private, function(keyLevel, keyChallengeMapID, playerRating, playerName)
 		if not listeningForKeys then
 			return
 		end
 
 		if playerName == localPlayerName then
+			return
+		end
+
+		if not IsPlayerInParty(playerName) then
 			return
 		end
 

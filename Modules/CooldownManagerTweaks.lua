@@ -26,6 +26,9 @@ table.insert(Private.LoginFnQueue, function()
 	---@class ChargeCountFrame : Frame
 	---@field Current FontString?
 
+	---@class PandemicFrame : Frame
+	---@field Border Frame?
+
 	---@class CooldownViewerItem : Frame
 	---@field Icon Texture?
 	---@field Cooldown CooldownFrame?
@@ -34,9 +37,11 @@ table.insert(Private.LoginFnQueue, function()
 	---@field CustomBorderFrame Frame?
 	---@field layoutIndex integer?
 	---@field DebuffBorder Frame?
-	---@field PandemicIcon Frame?
+	---@field PandemicIcon PandemicFrame?
 	---@field TriggerPandemicAlert (fun(self: CooldownViewerItem))?
+	---@field ShowPandemicStateFrame (fun(self: CooldownViewerItem))?
 	---@field PandemicHooked boolean?
+	---@field PandemicBorderHooked boolean?
 	---@field RecenterHooked boolean?
 	---@field OnActiveStateChanged (fun())?
 	---@field OnUnitAuraAddedEvent (fun())?
@@ -123,16 +128,13 @@ table.insert(Private.LoginFnQueue, function()
 			end
 		end
 
-		-- Replace circular mask texture / hide the round CDM overlay
 		for _, region in next, { button:GetRegions() } do
-			if region:IsObjectType("Texture") then
+			if region:IsObjectType("MaskTexture") then
+				---@cast region MaskTexture
+				region:SetTexture(SQUARE_TEXTURE)
+			elseif region:IsObjectType("Texture") then
 				---@cast region Texture
-				local texture = region:GetTexture()
-				local atlas = region:GetAtlas()
-
-				if not issecretvalue(texture) and texture == 6707800 then
-					region:SetTexture(SQUARE_TEXTURE)
-				elseif atlas == "UI-HUD-CoolDownManager-IconOverlay" then
+				if region:GetAtlas() == "UI-HUD-CoolDownManager-IconOverlay" then
 					region:SetAlpha(0)
 				end
 			end
@@ -155,6 +157,16 @@ table.insert(Private.LoginFnQueue, function()
 						button.PandemicIcon:SetScale(1.38)
 					end
 				end)
+			end)
+		end
+
+		if button.ShowPandemicStateFrame and not button.PandemicBorderHooked then
+			button.PandemicBorderHooked = true
+
+			hooksecurefunc(button, "ShowPandemicStateFrame", function()
+				if button.PandemicIcon and button.PandemicIcon.Border then
+					button.PandemicIcon.Border:SetAlpha(0)
+				end
 			end)
 		end
 
@@ -287,7 +299,120 @@ table.insert(Private.LoginFnQueue, function()
 	---@type FunctionContainer?
 	local recenterTimer
 
-	local function RecenterBuffIcons()
+	---@type boolean
+	local isRecentering = false
+
+	---@type fun()
+	local RecenterBuffIcons
+
+	---@return boolean ranOrSkipped false only when the viewer is not initialized yet
+	local function PerformRecenter()
+		if isRecentering then
+			return true
+		end
+
+		if not BuffIconCooldownViewer.IsInitialized or not BuffIconCooldownViewer:IsInitialized() then
+			return false
+		end
+
+		if EditModeManagerFrame and EditModeManagerFrame.layoutApplyInProgress then
+			return true
+		end
+
+		isRecentering = true
+
+		local visibleNativeIcons, allIconChildren = CollectBuffIconChildren()
+
+		for _, child in ipairs(allIconChildren) do
+			if not child.RecenterHooked and child.OnActiveStateChanged then
+				child.RecenterHooked = true
+				hooksecurefunc(child, "OnActiveStateChanged", PerformRecenter)
+				hooksecurefunc(child, "OnUnitAuraAddedEvent", PerformRecenter)
+				hooksecurefunc(child, "OnUnitAuraRemovedEvent", PerformRecenter)
+			end
+		end
+
+		local orderedAuraIds = {}
+		for auraId, auraFrame in pairs(childFrames) do
+			if auraFrame:IsShown() then
+				orderedAuraIds[#orderedAuraIds + 1] = auraId
+			end
+		end
+		table.sort(orderedAuraIds)
+
+		local totalSlots = #allIconChildren
+		local visibleNativeCount = #visibleNativeIcons
+		local customCount = #orderedAuraIds
+
+		if visibleNativeCount + customCount == 0 then
+			isRecentering = false
+			return true
+		end
+
+		local iconWidth, iconHeight
+		if visibleNativeCount > 0 then
+			iconWidth = visibleNativeIcons[1]:GetWidth()
+			iconHeight = visibleNativeIcons[1]:GetHeight()
+		else
+			local referenceFrame = childFrames[orderedAuraIds[1]]
+			iconWidth = referenceFrame:GetWidth()
+			iconHeight = referenceFrame:GetHeight()
+		end
+
+		if not iconWidth or iconWidth == 0 or not iconHeight or iconHeight == 0 then
+			isRecentering = false
+			return true
+		end
+
+		local isHorizontal = BuffIconCooldownViewer.isHorizontal ~= false
+		local isNormalDirection = BuffIconCooldownViewer.iconDirection == 1
+		local missingSlots = totalSlots - visibleNativeCount - customCount
+
+		if isHorizontal then
+			local padding = BuffIconCooldownViewer.childXPadding or 0
+			local directionModifier = isNormalDirection and 1 or -1
+			local startX = ((iconWidth + padding) * missingSlots / 2) * directionModifier
+			local anchor = isNormalDirection and "TOPLEFT" or "TOPRIGHT"
+
+			for index, icon in ipairs(visibleNativeIcons) do
+				local xOffset = startX + (index - 1) * (iconWidth + padding) * directionModifier
+				icon:ClearAllPoints()
+				icon:SetPoint(anchor, BuffIconCooldownViewer, anchor, xOffset, 0)
+			end
+
+			for index, auraId in ipairs(orderedAuraIds) do
+				local auraFrame = childFrames[auraId]
+				local xOffset = startX
+					+ (visibleNativeCount + index - 1) * (iconWidth + padding) * directionModifier
+				auraFrame:ClearAllPoints()
+				auraFrame:SetPoint(anchor, BuffIconCooldownViewer, anchor, xOffset, 0)
+			end
+		else
+			local padding = BuffIconCooldownViewer.childYPadding or 0
+			local directionModifier = isNormalDirection and -1 or 1
+			local startY = -((iconHeight + padding) * missingSlots / 2) * directionModifier
+			local anchor = isNormalDirection and "BOTTOMLEFT" or "TOPLEFT"
+
+			for index, icon in ipairs(visibleNativeIcons) do
+				local yOffset = startY - (index - 1) * (iconHeight + padding) * directionModifier
+				icon:ClearAllPoints()
+				icon:SetPoint(anchor, BuffIconCooldownViewer, anchor, 0, yOffset)
+			end
+
+			for index, auraId in ipairs(orderedAuraIds) do
+				local auraFrame = childFrames[auraId]
+				local yOffset = startY
+					- (visibleNativeCount + index - 1) * (iconHeight + padding) * directionModifier
+				auraFrame:ClearAllPoints()
+				auraFrame:SetPoint(anchor, BuffIconCooldownViewer, anchor, 0, yOffset)
+			end
+		end
+
+		isRecentering = false
+		return true
+	end
+
+	function RecenterBuffIcons()
 		if recenterTimer then
 			return
 		end
@@ -295,98 +420,8 @@ table.insert(Private.LoginFnQueue, function()
 		recenterTimer = C_Timer.NewTimer(0, function()
 			recenterTimer = nil
 
-			if not BuffIconCooldownViewer.IsInitialized or not BuffIconCooldownViewer:IsInitialized() then
+			if not PerformRecenter() then
 				RecenterBuffIcons()
-				return
-			end
-
-			if EditModeManagerFrame and EditModeManagerFrame.layoutApplyInProgress then
-				return
-			end
-
-			local visibleNativeIcons, allIconChildren = CollectBuffIconChildren()
-
-			for _, child in ipairs(allIconChildren) do
-				if not child.RecenterHooked and child.OnActiveStateChanged then
-					child.RecenterHooked = true
-					hooksecurefunc(child, "OnActiveStateChanged", RecenterBuffIcons)
-					hooksecurefunc(child, "OnUnitAuraAddedEvent", RecenterBuffIcons)
-					hooksecurefunc(child, "OnUnitAuraRemovedEvent", RecenterBuffIcons)
-				end
-			end
-
-			local orderedAuraIds = {}
-			for auraId, auraFrame in pairs(childFrames) do
-				if auraFrame:IsShown() then
-					orderedAuraIds[#orderedAuraIds + 1] = auraId
-				end
-			end
-			table.sort(orderedAuraIds)
-
-			local totalSlots = #allIconChildren
-			local visibleNativeCount = #visibleNativeIcons
-			local customCount = #orderedAuraIds
-
-			if visibleNativeCount + customCount == 0 then
-				return
-			end
-
-			local iconWidth, iconHeight
-			if visibleNativeCount > 0 then
-				iconWidth = visibleNativeIcons[1]:GetWidth()
-				iconHeight = visibleNativeIcons[1]:GetHeight()
-			else
-				local referenceFrame = childFrames[orderedAuraIds[1]]
-				iconWidth = referenceFrame:GetWidth()
-				iconHeight = referenceFrame:GetHeight()
-			end
-
-			if not iconWidth or iconWidth == 0 or not iconHeight or iconHeight == 0 then
-				return
-			end
-
-			local isHorizontal = BuffIconCooldownViewer.isHorizontal ~= false
-			local isNormalDirection = BuffIconCooldownViewer.iconDirection == 1
-			local missingSlots = totalSlots - visibleNativeCount - customCount
-
-			if isHorizontal then
-				local padding = BuffIconCooldownViewer.childXPadding or 0
-				local directionModifier = isNormalDirection and 1 or -1
-				local startX = ((iconWidth + padding) * missingSlots / 2) * directionModifier
-				local anchor = isNormalDirection and "TOPLEFT" or "TOPRIGHT"
-
-				for index, icon in ipairs(visibleNativeIcons) do
-					local xOffset = startX + (index - 1) * (iconWidth + padding) * directionModifier
-					icon:ClearAllPoints()
-					icon:SetPoint(anchor, BuffIconCooldownViewer, anchor, xOffset, 0)
-				end
-
-				for index, auraId in ipairs(orderedAuraIds) do
-					local auraFrame = childFrames[auraId]
-					local xOffset = startX
-						+ (visibleNativeCount + index - 1) * (iconWidth + padding) * directionModifier
-					auraFrame:ClearAllPoints()
-					auraFrame:SetPoint(anchor, BuffIconCooldownViewer, anchor, xOffset, 0)
-				end
-			else
-				local padding = BuffIconCooldownViewer.childYPadding or 0
-				local directionModifier = isNormalDirection and -1 or 1
-				local startY = -((iconHeight + padding) * missingSlots / 2) * directionModifier
-				local anchor = isNormalDirection and "BOTTOMLEFT" or "TOPLEFT"
-
-				for index, icon in ipairs(visibleNativeIcons) do
-					local yOffset = startY - (index - 1) * (iconHeight + padding) * directionModifier
-					icon:ClearAllPoints()
-					icon:SetPoint(anchor, BuffIconCooldownViewer, anchor, 0, yOffset)
-				end
-
-				for index, auraId in ipairs(orderedAuraIds) do
-					local auraFrame = childFrames[auraId]
-					local yOffset = startY
-						- (visibleNativeCount + index - 1) * (iconHeight + padding) * directionModifier
-					auraFrame:ClearAllPoints()
-					auraFrame:SetPoint(anchor, BuffIconCooldownViewer, anchor, 0, yOffset)
-				end
 			end
 		end)
 	end
@@ -561,15 +596,15 @@ table.insert(Private.LoginFnQueue, function()
 			RecenterBuffIcons()
 		end)
 
+		hooksecurefunc(BuffIconCooldownViewer, "Layout", function()
+			PerformRecenter()
+		end)
+
 		StyleViewer(EssentialCooldownViewer, "EssentialCooldownViewer")
 		StyleViewer(UtilityCooldownViewer, "UtilityCooldownViewer")
 		StyleViewer(BuffIconCooldownViewer, "BuffIconCooldownViewer")
 
 		RecenterBuffIcons()
-
-		-- hooksecurefunc(CooldownViewerBuffIconItemMixin, "OnLoad", SetupBuffIconItem)
-		-- hooksecurefunc(CooldownViewerEssentialItemMixin, "OnLoad", SetupCooldownItem)
-		-- hooksecurefunc(CooldownViewerUtilityItemMixin, "OnLoad", SetupCooldownItem)
 
 		for _, child in ipairs({ BuffIconCooldownViewer:GetChildren() }) do
 			SetupBuffIconItem(child)

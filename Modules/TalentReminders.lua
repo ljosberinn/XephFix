@@ -26,6 +26,7 @@ table.insert(Private.LoginFnQueue, function()
 		local specId = PlayerUtil.GetCurrentSpecID()
 
 		local dungeons = {
+			-- midnight s1
 			algetharAcademy = 2097,
 			magistersTerrace = 2515,
 			maisaraCaverns = 2501,
@@ -34,6 +35,15 @@ table.insert(Private.LoginFnQueue, function()
 			seatOfTheTriumvirate = 903,
 			skyreach = 601,
 			windrunnersSpire = 2492,
+			-- midnight s2
+			altarOfFangs = 2588, -- ?
+			rubyLifePools = 2095, -- ?
+			templeOfSethraliss = 1038, -- ?
+			kingsRest = 1004, -- ?
+			denOfNalorakk = 2564, -- ?
+			murderRow = 2433, -- ?
+			voidscarArena = 2574, -- ?
+			blindingVale = 2500, -- ?
 		}
 
 		if classId == Constants.UICharacterClasses.Evoker then
@@ -44,6 +54,7 @@ table.insert(Private.LoginFnQueue, function()
 			local Overawe = 374346
 			local TerrofOfTheSkies = 371032
 
+			-- s1
 			zoneIdToSpellIdsMap[dungeons.algetharAcademy] = {
 				CauterizingFlame,
 				Zephyr,
@@ -54,6 +65,7 @@ table.insert(Private.LoginFnQueue, function()
 			zoneIdToSpellIdsMap[dungeons.maisaraCaverns] = {
 				CauterizingFlame,
 				Zephyr,
+				Overawe,
 			}
 
 			zoneIdToSpellIdsMap[dungeons.nexusPointXenas] = {
@@ -90,9 +102,58 @@ table.insert(Private.LoginFnQueue, function()
 				CauterizingFlame,
 			}
 
+			-- s2
+			zoneIdToSpellIdsMap[dungeons.altarOfFangs] = {
+				CauterizingFlame,
+				Zephyr,
+			}
+
+			zoneIdToSpellIdsMap[dungeons.denOfNalorakk] = {
+				CauterizingFlame,
+				Zephyr,
+				Overawe
+			}
+
+			zoneIdToSpellIdsMap[dungeons.kingsRest] = {
+				CauterizingFlame,
+				Zephyr,
+				Overawe
+			}
+
+			zoneIdToSpellIdsMap[dungeons.rubyLifePools] = {
+				CauterizingFlame,
+				Zephyr,
+			}
+
+			zoneIdToSpellIdsMap[dungeons.murderRow] = {
+				CauterizingFlame,
+				Zephyr,
+				Overawe
+			}
+
+			zoneIdToSpellIdsMap[dungeons.templeOfSethraliss] = {
+				CauterizingFlame,
+				Zephyr,
+			}
+
+			zoneIdToSpellIdsMap[dungeons.blindingVale] = {
+				CauterizingFlame,
+				Zephyr,
+			}
+
+
+			zoneIdToSpellIdsMap[dungeons.voidscarArena] = {
+				CauterizingFlame,
+				Zephyr,
+				Overawe
+			}
+
 			if specId == 1473 then
 				table.insert(zoneIdToSpellIdsMap[dungeons.pitOfSaron], BestowWeyrnstone)
+				table.insert(zoneIdToSpellIdsMap[dungeons.nexusPointXenas], BestowWeyrnstone)
+				table.insert(zoneIdToSpellIdsMap[dungeons.windrunnersSpire], BestowWeyrnstone)
 				table.insert(zoneIdToSpellIdsMap[dungeons.skyreach], BestowWeyrnstone)
+				table.insert(zoneIdToSpellIdsMap[dungeons.skyreach], SleepWalk)
 				table.insert(zoneIdToSpellIdsMap[dungeons.magistersTerrace], BestowWeyrnstone)
 			end
 		end

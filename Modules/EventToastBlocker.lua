@@ -27,4 +27,6 @@ table.insert(Private.LoginFnQueue, function()
 
 		origDisplayToast(self, true)
 	end
+
+	BossBanner:UnregisterAllEvents();
 end)
