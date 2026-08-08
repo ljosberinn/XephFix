@@ -5,6 +5,15 @@ table.insert(Private.LoginFnQueue, function()
 		return
 	end
 
+	local isTwelveOneOrLater = select(4, GetBuildInfo()) >= 120100
+
+	-- Only shipped in build 68914, partway through 12.1, so it cannot be named unconditionally in
+	-- CreateFrame. Builds without it also predate the forbidden aspect that makes it necessary.
+	---@type string?
+	local layoutScriptOptOutTemplate = C_XMLUtil.GetTemplateInfo("DisableUntrustedLayoutScriptsTemplate")
+		and "DisableUntrustedLayoutScriptsTemplate"
+		or nil
+
 	-- key: cast spell ID (which doubles as the aura ID to display)
 	---@type table<integer, ItemInfo>
 	local castToItemInfo = {
@@ -18,6 +27,27 @@ table.insert(Private.LoginFnQueue, function()
 	---@type table<integer, AuraSpellInfo>
 	local castToAuraInfo = {
 		-- [spellId] = { auraId = ..., duration = ... },
+	}
+
+	---@type table<integer, integer[]>
+	local classToAdditionalAurasToTrack = {
+		[Constants.UICharacterClasses.Evoker] = {
+			375802, -- Burnout
+			375234, -- Time Spiral
+			370553, -- Tip the Scales
+		}
+	}
+
+	local externals = {
+		6940, -- Blessing of Sacrifice
+		102342, -- Ironbark
+		33206, -- Pain Suppression
+		47788, -- Guardian Spirit
+		116849, -- Life Cocoon
+		357170, -- Time Dilation
+		204018, -- Blessing of Spellwarding
+		81782, -- Power Word: Barrier
+		145629, -- Anti-Magic Zone
 	}
 
 	---@class ApplicationsFrame : Frame
@@ -70,11 +100,31 @@ table.insert(Private.LoginFnQueue, function()
 	---@class AuraListenerFrame : Frame
 	---@field UpdateEventRegistration fun(self: AuraListenerFrame)
 
+	---@class CustomAuraButton : Button
+	---@field SetIcon fun(self: CustomAuraButton, texture: Texture)
+	---@field SetDurationCooldown fun(self: CustomAuraButton, cooldownFrame: CooldownFrame)
+
+	---@class CustomAuraContainer : Frame
+	---@field SetUnit fun(self: CustomAuraContainer, unitToken: string)
+	---@field AddAuraGroup fun(self: CustomAuraContainer, groupKey: string, filterString: string, options: table)
+	---@field SetAuraGroupLayout fun(self: CustomAuraContainer, groupKey: string, layoutOptions: table)
+	---@field SetFlowLayoutAnchorPoint fun(self: CustomAuraContainer, anchorPoint: string)
+	---@field SetFlowLayoutGrowthDirection fun(self: CustomAuraContainer, horizontalDirection: integer, verticalDirection: integer)
+
 	---@type string
 	local SQUARE_TEXTURE = "Interface\\Buttons\\WHITE8x8"
 
 	---@type integer
 	local BORDER_PIXELS = 1
+
+	---@type integer
+	local AURA_ICON_SIZE = 40
+
+	---@type string
+	local TRACKED_AURA_GROUP_KEY = "XephUITrackedAura"
+
+	---@type integer
+	local COLLAPSED_CONTAINER_EXTENT = 1
 
 	---@type string?
 	local cachedFontPath
@@ -98,6 +148,33 @@ table.insert(Private.LoginFnQueue, function()
 		cachedFontPath = "Interface/AddOns/Platynator/Assets/Fonts/RobotoCondensed-Bold.ttf"
 
 		return cachedFontPath
+	end
+
+	---@param parent Frame
+	---@return Frame
+	local function CreatePixelBorder(parent)
+		local borderFrame = CreateFrame("Frame", nil, parent, layoutScriptOptOutTemplate)
+		borderFrame:SetAllPoints(parent)
+
+		for _, edge in ipairs({ "TOP", "BOTTOM" }) do
+			local line = borderFrame:CreateTexture(nil, "OVERLAY")
+			line:SetTexture(SQUARE_TEXTURE)
+			line:SetVertexColor(0, 0, 0, 1)
+			line:SetHeight(BORDER_PIXELS)
+			line:SetPoint(edge .. "LEFT", borderFrame, edge .. "LEFT", 0, 0)
+			line:SetPoint(edge .. "RIGHT", borderFrame, edge .. "RIGHT", 0, 0)
+		end
+
+		for _, edge in ipairs({ "LEFT", "RIGHT" }) do
+			local line = borderFrame:CreateTexture(nil, "OVERLAY")
+			line:SetTexture(SQUARE_TEXTURE)
+			line:SetVertexColor(0, 0, 0, 1)
+			line:SetWidth(BORDER_PIXELS)
+			line:SetPoint("TOP" .. edge, borderFrame, "TOP" .. edge, 0, 0)
+			line:SetPoint("BOTTOM" .. edge, borderFrame, "BOTTOM" .. edge, 0, 0)
+		end
+
+		return borderFrame
 	end
 
 	---@param button CooldownViewerItem
@@ -172,12 +249,8 @@ table.insert(Private.LoginFnQueue, function()
 
 		-- Black border overlay
 		if not button.CustomBorderFrame then
-			local borderFrame = CreateFrame("Frame", nil, button, "BackdropTemplate")
-
+			local borderFrame = CreatePixelBorder(button)
 			borderFrame:SetFrameLevel(button:GetFrameLevel() + 1)
-			borderFrame:SetAllPoints(button)
-			borderFrame:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = BORDER_PIXELS })
-			borderFrame:SetBackdropBorderColor(0, 0, 0, 1)
 			button.CustomBorderFrame = borderFrame
 		end
 	end
@@ -296,6 +369,9 @@ table.insert(Private.LoginFnQueue, function()
 	---@type table<integer, AuraFrame>
 	local childFrames = {}
 
+	---@type CustomAuraContainer[]
+	local auraContainers = {}
+
 	---@type FunctionContainer?
 	local recenterTimer
 
@@ -304,6 +380,130 @@ table.insert(Private.LoginFnQueue, function()
 
 	---@type fun()
 	local RecenterBuffIcons
+
+	---@class ContainerOrientation
+	---@field anchorPoint string
+	---@field chainPoint string
+	---@field horizontalGrowthDirection integer
+	---@field verticalGrowthDirection integer
+	---@field growthX integer -1, 0 or 1, the direction the row grows along each axis
+	---@field growthY integer
+
+	---@param isHorizontal boolean
+	---@param isNormalDirection boolean
+	---@return ContainerOrientation
+	local function GetContainerOrientation(isHorizontal, isNormalDirection)
+		if isHorizontal then
+			local horizontalGrowthDirection = isNormalDirection and AnchorUtil.FlowDirection.Right
+				or AnchorUtil.FlowDirection.Left
+
+			return {
+				anchorPoint = isNormalDirection and "TOPLEFT" or "TOPRIGHT",
+				chainPoint = isNormalDirection and "TOPRIGHT" or "TOPLEFT",
+				horizontalGrowthDirection = horizontalGrowthDirection,
+				verticalGrowthDirection = AnchorUtil.FlowDirection.Down,
+				growthX = horizontalGrowthDirection,
+				growthY = 0,
+			}
+		end
+
+		local verticalGrowthDirection = isNormalDirection and AnchorUtil.FlowDirection.Up
+			or AnchorUtil.FlowDirection.Down
+
+		return {
+			anchorPoint = isNormalDirection and "BOTTOMLEFT" or "TOPLEFT",
+			chainPoint = isNormalDirection and "TOPLEFT" or "BOTTOMLEFT",
+			horizontalGrowthDirection = AnchorUtil.FlowDirection.Right,
+			verticalGrowthDirection = verticalGrowthDirection,
+			growthX = 0,
+			growthY = verticalGrowthDirection,
+		}
+	end
+
+	---@type table<CustomAuraContainer[], string>
+	local appliedContainerLayoutSignatures = {}
+
+	---@param containers CustomAuraContainer[]
+	---@param orientation ContainerOrientation
+	---@param elementWidth number
+	---@param elementHeight number
+	local function ApplyContainerLayout(containers, orientation, elementWidth, elementHeight)
+		local signature = table.concat({
+			orientation.anchorPoint,
+			orientation.horizontalGrowthDirection,
+			orientation.verticalGrowthDirection,
+			elementWidth,
+			elementHeight,
+		}, ":")
+
+		if appliedContainerLayoutSignatures[containers] == signature then
+			return
+		end
+
+		appliedContainerLayoutSignatures[containers] = signature
+
+		for _, container in ipairs(containers) do
+			container:SetFlowLayoutAnchorPoint(orientation.anchorPoint)
+			container:SetFlowLayoutGrowthDirection(
+				orientation.horizontalGrowthDirection,
+				orientation.verticalGrowthDirection
+			)
+			container:SetAuraGroupLayout(TRACKED_AURA_GROUP_KEY, {
+				elementWidth = elementWidth,
+				elementHeight = elementHeight,
+			})
+		end
+	end
+
+	---@param isHorizontal boolean
+	---@param isNormalDirection boolean
+	---@param iconWidth number
+	---@param iconHeight number
+	---@param padding number
+	---@param firstXOffset number
+	---@param firstYOffset number
+	local function PositionAuraContainers(
+		isHorizontal,
+		isNormalDirection,
+		iconWidth,
+		iconHeight,
+		padding,
+		firstXOffset,
+		firstYOffset
+	)
+		if #auraContainers == 0 then
+			return
+		end
+
+		local orientation = GetContainerOrientation(isHorizontal, isNormalDirection)
+
+		ApplyContainerLayout(
+			auraContainers,
+			orientation,
+			isHorizontal and (iconWidth + padding + COLLAPSED_CONTAINER_EXTENT) or iconWidth,
+			isHorizontal and iconHeight or (iconHeight + padding + COLLAPSED_CONTAINER_EXTENT)
+		)
+
+		local correctionX = -orientation.growthX * COLLAPSED_CONTAINER_EXTENT
+		local correctionY = -orientation.growthY * COLLAPSED_CONTAINER_EXTENT
+
+		---@type CustomAuraContainer?
+		local previousContainer
+
+		for _, container in ipairs(auraContainers) do
+			container:ClearAllPoints()
+
+			if previousContainer then
+				container:SetPoint(orientation.anchorPoint, previousContainer, orientation.chainPoint, correctionX,
+					correctionY)
+			else
+				container:SetPoint(orientation.anchorPoint, BuffIconCooldownViewer, orientation.anchorPoint,
+					firstXOffset, firstYOffset)
+			end
+
+			previousContainer = container
+		end
+	end
 
 	---@return boolean ranOrSkipped false only when the viewer is not initialized yet
 	local function PerformRecenter()
@@ -344,32 +544,21 @@ table.insert(Private.LoginFnQueue, function()
 		local visibleNativeCount = #visibleNativeIcons
 		local customCount = #orderedAuraIds
 
-		if visibleNativeCount + customCount == 0 then
+		if visibleNativeCount + customCount + #auraContainers == 0 then
 			isRecentering = false
 			return true
 		end
 
-		local iconWidth, iconHeight
-		if visibleNativeCount > 0 then
-			iconWidth = visibleNativeIcons[1]:GetWidth()
-			iconHeight = visibleNativeIcons[1]:GetHeight()
-		else
-			local referenceFrame = childFrames[orderedAuraIds[1]]
-			iconWidth = referenceFrame:GetWidth()
-			iconHeight = referenceFrame:GetHeight()
-		end
-
-		if not iconWidth or iconWidth == 0 or not iconHeight or iconHeight == 0 then
-			isRecentering = false
-			return true
-		end
+		local iconWidth = AURA_ICON_SIZE
+		local iconHeight = AURA_ICON_SIZE
 
 		local isHorizontal = BuffIconCooldownViewer.isHorizontal ~= false
 		local isNormalDirection = BuffIconCooldownViewer.iconDirection == 1
 		local missingSlots = totalSlots - visibleNativeCount - customCount
+		local padding = isHorizontal and (BuffIconCooldownViewer.childXPadding or 0)
+			or (BuffIconCooldownViewer.childYPadding or 0)
 
 		if isHorizontal then
-			local padding = BuffIconCooldownViewer.childXPadding or 0
 			local directionModifier = isNormalDirection and 1 or -1
 			local startX = ((iconWidth + padding) * missingSlots / 2) * directionModifier
 			local anchor = isNormalDirection and "TOPLEFT" or "TOPRIGHT"
@@ -387,8 +576,10 @@ table.insert(Private.LoginFnQueue, function()
 				auraFrame:ClearAllPoints()
 				auraFrame:SetPoint(anchor, BuffIconCooldownViewer, anchor, xOffset, 0)
 			end
+
+			local firstXOffset = startX + (visibleNativeCount + customCount) * (iconWidth + padding) * directionModifier
+			PositionAuraContainers(isHorizontal, isNormalDirection, iconWidth, iconHeight, padding, firstXOffset, 0)
 		else
-			local padding = BuffIconCooldownViewer.childYPadding or 0
 			local directionModifier = isNormalDirection and -1 or 1
 			local startY = -((iconHeight + padding) * missingSlots / 2) * directionModifier
 			local anchor = isNormalDirection and "BOTTOMLEFT" or "TOPLEFT"
@@ -406,6 +597,9 @@ table.insert(Private.LoginFnQueue, function()
 				auraFrame:ClearAllPoints()
 				auraFrame:SetPoint(anchor, BuffIconCooldownViewer, anchor, 0, yOffset)
 			end
+
+			local firstYOffset = startY - (visibleNativeCount + customCount) * (iconHeight + padding) * directionModifier
+			PositionAuraContainers(isHorizontal, isNormalDirection, iconWidth, iconHeight, padding, 0, firstYOffset)
 		end
 
 		isRecentering = false
@@ -460,7 +654,7 @@ table.insert(Private.LoginFnQueue, function()
 
 		---@type AuraFrame
 		local auraFrame = CreateFrame("Frame", nil, listenerFrame)
-		auraFrame:SetSize(40, 40)
+		auraFrame:SetSize(AURA_ICON_SIZE, AURA_ICON_SIZE)
 		auraFrame:Hide()
 
 		auraFrame.Icon = auraFrame:CreateTexture(nil, "ARTWORK")
@@ -475,14 +669,68 @@ table.insert(Private.LoginFnQueue, function()
 		auraFrame.Cooldown:SetSwipeColor(0, 0, 0, 0.7)
 		auraFrame.Cooldown:SetUseAuraDisplayTime(true)
 
-		local borderFrame = CreateFrame("Frame", nil, auraFrame, "BackdropTemplate")
+		local borderFrame = CreatePixelBorder(auraFrame)
 		borderFrame:SetFrameLevel(auraFrame:GetFrameLevel() + 1)
-		borderFrame:SetAllPoints(auraFrame)
-		borderFrame:SetBackdrop({ edgeFile = SQUARE_TEXTURE, edgeSize = BORDER_PIXELS })
-		borderFrame:SetBackdropBorderColor(0, 0, 0, 1)
 
 		childFrames[auraId] = auraFrame
 		return auraFrame
+	end
+
+	---@param auraButton CustomAuraButton
+	local function InitializeTrackedAuraButton(auraButton)
+		auraButton:SetSize(AURA_ICON_SIZE, AURA_ICON_SIZE)
+		auraButton:EnableMouse(false)
+
+		local icon = auraButton:CreateTexture(nil, "ARTWORK")
+		icon:SetAllPoints(auraButton)
+		icon:SetTexCoord(0, 1, 0, 1)
+		auraButton:SetIcon(icon)
+
+		local cooldown = CreateFrame("Cooldown", nil, auraButton)
+		cooldown:SetPoint("TOPLEFT", auraButton, "TOPLEFT", BORDER_PIXELS, -BORDER_PIXELS)
+		cooldown:SetPoint("BOTTOMRIGHT", auraButton, "BOTTOMRIGHT", -BORDER_PIXELS, BORDER_PIXELS)
+		---@diagnostic disable-next-line: missing-parameter
+		cooldown:SetSwipeTexture(SQUARE_TEXTURE)
+		cooldown:SetReverse(true)
+		cooldown:SetSwipeColor(0, 0, 0, 0.7)
+		cooldown:SetUseAuraDisplayTime(true)
+		cooldown:SetCountdownMillisecondsThreshold(4)
+		auraButton:SetDurationCooldown(cooldown)
+
+		CreatePixelBorder(auraButton)
+	end
+
+	---@param auraId integer
+	---@return CustomAuraContainer
+	local function CreateAuraContainer(auraId)
+		---@type CustomAuraContainer
+		local container = CreateFrame("AuraContainer", nil, listenerFrame, "CustomAuraContainerTemplate")
+		container:SetUnit("player")
+		container:AddAuraGroup(TRACKED_AURA_GROUP_KEY, "HELPFUL|PLAYER", {
+			maxFrameCount = 1,
+			initializeFrame = InitializeTrackedAuraButton,
+			candidateFilters = {
+				includeSpellIDs = { [auraId] = true },
+			},
+		})
+
+		return container
+	end
+
+	local function CreateTrackedAuraContainers()
+		if not isTwelveOneOrLater then
+			return
+		end
+
+		local additionalAurasToTrack = classToAdditionalAurasToTrack[select(3, UnitClass("player"))] or {}
+
+		for _, auraId in ipairs(externals) do
+			table.insert(additionalAurasToTrack, auraId)
+		end
+
+		for _, auraId in ipairs(additionalAurasToTrack) do
+			auraContainers[#auraContainers + 1] = CreateAuraContainer(auraId)
+		end
 	end
 
 	function listenerFrame:UpdateEventRegistration()
@@ -604,6 +852,7 @@ table.insert(Private.LoginFnQueue, function()
 		StyleViewer(UtilityCooldownViewer, "UtilityCooldownViewer")
 		StyleViewer(BuffIconCooldownViewer, "BuffIconCooldownViewer")
 
+		CreateTrackedAuraContainers()
 		RecenterBuffIcons()
 
 		for _, child in ipairs({ BuffIconCooldownViewer:GetChildren() }) do

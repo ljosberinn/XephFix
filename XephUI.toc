@@ -23,6 +23,7 @@ Modules/CharacterStatsFormatting.lua
 Modules/ChatItemEnhancements.lua
 Modules/CleanNamesInInstances.lua
 Modules/CooldownManagerMountOpacity.lua
+Modules/CVars.lua
 Modules/DamageMeterToggle.lua
 Modules/DraggableFrames.lua
 Modules/EventToastBlocker.lua
