@@ -372,6 +372,10 @@ table.insert(Private.LoginFnQueue, function()
 	---@type CustomAuraContainer[]
 	local auraContainers = {}
 
+	-- guards against creating a second container for an aura we already track
+	---@type table<integer, CustomAuraContainer>
+	local auraContainersByAuraId = {}
+
 	---@type FunctionContainer?
 	local recenterTimer
 
@@ -722,14 +726,23 @@ table.insert(Private.LoginFnQueue, function()
 			return
 		end
 
-		local additionalAurasToTrack = classToAdditionalAurasToTrack[select(3, UnitClass("player"))] or {}
+		---@type integer[]
+		local additionalAurasToTrack = {}
+
+		for _, auraId in ipairs(classToAdditionalAurasToTrack[select(3, UnitClass("player"))] or {}) do
+			additionalAurasToTrack[#additionalAurasToTrack + 1] = auraId
+		end
 
 		for _, auraId in ipairs(externals) do
-			table.insert(additionalAurasToTrack, auraId)
+			additionalAurasToTrack[#additionalAurasToTrack + 1] = auraId
 		end
 
 		for _, auraId in ipairs(additionalAurasToTrack) do
-			auraContainers[#auraContainers + 1] = CreateAuraContainer(auraId)
+			if not auraContainersByAuraId[auraId] then
+				local container = CreateAuraContainer(auraId)
+				auraContainersByAuraId[auraId] = container
+				auraContainers[#auraContainers + 1] = container
+			end
 		end
 	end
 
