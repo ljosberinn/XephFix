@@ -8,7 +8,10 @@ EventUtil.ContinueOnAddOnLoaded(addonName, function()
 		AutoDialogueInteraction = true,
 		AutoGreet = true,
 		AutoKeystone = true,
+		AutoQuest = true,
+		AutoRepair = true,
 		AutoRoleSelect = true,
+		AutoSellJunk = true,
 		BuffWarningPatch = true,
 		CharacterSheetImprovements = true,
 		CharacterStatsFormatting = true,
@@ -20,7 +23,6 @@ EventUtil.ContinueOnAddOnLoaded(addonName, function()
 		DraggableFrames = true,
 		EventToastBlocker = true,
 		EvokerLetFly = true,
-		FastLoot = true,
 		FocusMarkerAnnouncement = true,
 		GearUpgradeRankTooltipRenamer = true,
 		GearUpgradeReminder = true,
@@ -28,11 +30,14 @@ EventUtil.ContinueOnAddOnLoaded(addonName, function()
 		KeystoneAnnouncer = true,
 		KeystoneInfo = true,
 		MDTSim = true,
+		PlayerFrameChain = true,
 		Stopwatch = true,
+		TalkingHeadBlocker = true,
 		TargetShield = true,
 		TalentReminders = true,
 		TooltipIDs = true,
 		UIScale = true,
+		UnitTooltipEnhancements = true,
 	}
 
 	XephUISaved = XephUISaved or {}

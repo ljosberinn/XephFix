@@ -21,8 +21,14 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - the equivalent of /p hi
 - AutoKeystone
   - automatically inserts your keystone into the receptacle when it opens
+- AutoQuest
+  - automatically accepts, selects and turns in quests
+- AutoRepair
+  - automatically repairs at merchants
 - AutoRoleSelect
   - automatically confirms role check popups based on your current specialization
+- AutoSellJunk
+  - automatically sells junk at merchants
 - BuffWarningPatch
   - removes the stupid alpha change for expiring auras
 - CharacterSheetImprovements
@@ -39,6 +45,8 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - reskins cooldown manager icons to square with a custom font and black border
   - enables millisecond countdown display below 4 seconds for all viewers
   - supports injecting custom item-triggered auras into the buff icon viewer
+- CVars
+  - enables aura spell IDs in tooltips
 - DamageMeterToggle
   - automatically shows the damage meter in dungeons, but hides it outside
 - DraggableFrames
@@ -48,8 +56,6 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - suppresses specific event toast popups (waystone discovery, new stage notifications)
 - EvokerLetFly
   - evoker only: mutes the default Deep Breath / Breath of Eons voice lines and plays a custom sound instead
-- FastLoot
-  - self explaining; doesn't execute if you have Plumber or LeatrixPlus
 - FocusMarkerAnnouncement
   - announces your focus marker assuming you have a /tm macro wtih the name `focus`
 - GearUpgradeRankTooltipRenamer
@@ -67,11 +73,15 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - communicates your keystone info to others with e.g. BigWigs
 - MDTSim
   - port of https://wago.io/LTwpBiuz_
+- PlayerFrameChain
+  - adds the winged boss chain overlay to the player frame
 - Stopwatch
   - modifies the ingame stopwatch to act as combat timer. has ui elemenets hidden such as hours, buttons and background
 - TalentReminders
   - plays TTS when entering Midnight dungeons and you're missing certain talents
   - only implemented for evoker, doesn't do anything if you're not an evoker
+- TalkingHeadBlocker
+  - hides talking head frames
 - TargetShield
   - shows remaining amount of absorb on the target
 - TooltipIDs
@@ -79,3 +89,7 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
 - UIScale
   - port of !UIScale addon, but doesn't throw an error when reloading ui mid-combat
   - set to 1440p resolution
+- UnitTooltipEnhancements
+  - hides the tooltip health bar
+  - class colors names, guild, spec and reaction lines, colors mob names by tap state
+  - rewrites the level line with difficulty color, creature type and classification

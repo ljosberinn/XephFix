@@ -1,4 +1,4 @@
-## Interface: 120007, 120100
+## Interface: 120100
 ## Title: XephUI
 ## DefaultState: Enabled
 ## Author: Xephyris-Blackrock-EU
@@ -16,7 +16,10 @@ Modules/AddonSuiteProfileSwapReminder.lua
 Modules/AutoDialogueInteraction.lua
 Modules/AutoGreet.lua
 Modules/AutoKeystone.lua
+Modules/AutoQuest.lua
+Modules/AutoRepair.lua
 Modules/AutoRoleSelect.lua
+Modules/AutoSellJunk.lua
 Modules/BuffWarningPatch.lua
 Modules/CharacterSheetImprovements.lua
 Modules/CharacterStatsFormatting.lua
@@ -28,7 +31,6 @@ Modules/DamageMeterToggle.lua
 Modules/DraggableFrames.lua
 Modules/EventToastBlocker.lua
 Modules/EvokerLetFly.lua
-Modules/FastLoot.lua
 Modules/FocusMarkerAnnouncement.lua
 Modules/GearUpgradeRankTooltipRenamer.lua
 Modules/GearUpgradeReminder.lua
@@ -37,8 +39,11 @@ Modules/KeystoneAnnouncer.lua
 Modules/KeystoneInfo.lua
 Modules/MDTSim.lua
 Modules/CooldownManagerTweaks.lua
+Modules/PlayerFrameChain.lua
 Modules/Stopwatch.lua
+Modules/TalkingHeadBlocker.lua
 Modules/TargetShield.lua
 Modules/TalentReminders.lua
 Modules/TooltipIDs.lua
 Modules/UIScale.lua
+Modules/UnitTooltipEnhancements.lua
