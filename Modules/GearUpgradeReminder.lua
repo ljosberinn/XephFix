@@ -42,6 +42,36 @@ table.insert(Private.LoginFnQueue, function()
 		[12804] = "Myth",
 		[12805] = "Myth",
 		[12806] = "Myth",
+		[12817] = "Adventurer",
+		[12818] = "Adventurer",
+		[12819] = "Adventurer",
+		[12820] = "Adventurer",
+		[12821] = "Adventurer",
+		[12822] = "Adventurer",
+		[12825] = "Veteran",
+		[12826] = "Veteran",
+		[12827] = "Veteran",
+		[12828] = "Veteran",
+		[12829] = "Veteran",
+		[12830] = "Veteran",
+		[12833] = "Champion",
+		[12834] = "Champion",
+		[12835] = "Champion",
+		[12836] = "Champion",
+		[12837] = "Champion",
+		[12838] = "Champion",
+		[12841] = "Hero",
+		[12842] = "Hero",
+		[12843] = "Hero",
+		[12844] = "Hero",
+		[12845] = "Hero",
+		[12846] = "Hero",
+		[12849] = "Myth",
+		[12850] = "Myth",
+		[12851] = "Myth",
+		[12852] = "Myth",
+		[12853] = "Myth",
+		[12854] = "Myth"
 	}
 	-- copy(JSON.stringify(Object.values(JSON.parse($0.textContent)).filter(x => x.upgrade?.seasonId === 34).reduce((acc, data) => {
 	--     const [tier] = data.upgrade.fullName.split(' ')
@@ -62,17 +92,24 @@ table.insert(Private.LoginFnQueue, function()
 	-- }, {})).replaceAll(':', '=').replaceAll('"', ''))
 
 	local tiers = {
-		Adventurer = { min = 220, max = 237 },
-		Veteran = { min = 233, max = 250 },
-		Champion = { min = 246, max = 263 },
-		Hero = { min = 259, max = 276 },
-		Myth = { min = 272, max = 289 },
+		-- Midnight S1
+		-- Adventurer = { min = 220, max = 237 },
+		-- Veteran = { min = 233, max = 250 },
+		-- Champion = { min = 246, max = 263 },
+		-- Hero = { min = 259, max = 276 },
+		-- Myth = { min = 272, max = 289 },
+		-- Midnight S2
+		Adventurer = { min = 266, max = 282 },
+		Veteran = { min = 279, max = 295 },
+		Champion = { min = 292, max = 308 },
+		Hero = { min = 305, max = 321 },
+		Myth = { min = 318, max = 334 }
 	}
 
+	-- https://wago.tools/db2/ItemBonus?filter%5BValue_2%5D=2061%7C2062%7C2063&page=1
 	local craftedBonusIds = {
 		[12066] = true, -- Radiance Crafted
-		-- https://wago.tools/db2/ItemBonus?filter%5BValue_2%5D=2061%7C2062%7C2063&page=1
-		-- presumably 15587?
+		[13751] = true, -- Tidal Crafted
 	}
 
 	local function GetUpgradeTrack(bonusIds)

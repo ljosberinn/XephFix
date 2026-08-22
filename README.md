@@ -62,9 +62,6 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - port of https://wago.io/78z7JtUxS
 - GearUpgradeReminder
   - port of https://wago.io/DA3OzoIsi
-- HiddenQuestCleanup
-  - automatically unwatches hidden watched quests
-  - sounds stupid - but this, based on unknown factors - can be a significant performance improvement, I personally gained ~9 fps in dornogal
 - KeystoneAnnouncer
   - automatically announces your key when you reroll it or at the end of a dungeon and it was your key that was completed
 - KeystoneInfo
