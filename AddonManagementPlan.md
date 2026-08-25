@@ -315,7 +315,8 @@ table.insert(Private.LoginFnQueue, function()
 		return
 	end
 
-	RecordCharacter()
+	-- UnitFullName's realm and GetNormalizedRealmName are both nil this early on ADDON_LOADED; defer until login supplies one.
+	EventUtil.ContinueOnPlayerLogin(RecordCharacter)
 end)
 ```
 
@@ -436,7 +437,7 @@ Add near the top of the file, after `CONTENT_TYPE_LABELS`:
 local OpenSettings
 ```
 
-Add inside the `LoginFnQueue` function, after `RecordCharacter()`:
+Add inside the `LoginFnQueue` function, after the deferred `RecordCharacter()` call:
 
 ```lua
 	SLASH_XEPHUI1 = "/xephui"
@@ -993,7 +994,7 @@ end
 
 - [ ] **Step 8: Call the builder at login**
 
-Inside the `LoginFnQueue` function, after `RecordCharacter()` and before the slash command block:
+Inside the `LoginFnQueue` function, after the deferred `RecordCharacter()` call and before the slash command block:
 
 ```lua
 	BuildSettings()

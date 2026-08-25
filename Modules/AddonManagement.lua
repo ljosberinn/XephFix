@@ -675,7 +675,8 @@ table.insert(Private.LoginFnQueue, function()
 		return
 	end
 
-	RecordCharacter()
+	-- UnitFullName's realm and GetNormalizedRealmName are both nil this early on ADDON_LOADED; defer until login supplies one.
+	EventUtil.ContinueOnPlayerLogin(RecordCharacter)
 
 	BuildSettings()
 
