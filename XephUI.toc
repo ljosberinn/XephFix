@@ -47,3 +47,4 @@ Modules/TalentReminders.lua
 Modules/TooltipIDs.lua
 Modules/UIScale.lua
 Modules/UnitTooltipEnhancements.lua
+Templates/AddonManagement.xml

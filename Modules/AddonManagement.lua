@@ -199,6 +199,43 @@ local function ApplyProfile(profile)
 	ReloadUI()
 end
 
+local MULTI_SELECT_SCROLL_EXTENT = 400
+
+XephUIMultiSelectDropdownControlMixin = CreateFromMixins(SettingsDropdownControlMixin)
+
+function XephUIMultiSelectDropdownControlMixin:OnLoad()
+	-- Steppers only make sense for single-selection dropdowns.
+	self.forceSteppersHidden = true
+
+	SettingsDropdownControlMixin.OnLoad(self)
+end
+
+function XephUIMultiSelectDropdownControlMixin:SetupDropdownMenu(_, _, _, _, initializer)
+	local dropdown = self.Control.Dropdown
+
+	dropdown:SetupMenu(function(_, rootDescription)
+		rootDescription:SetScrollMode(MULTI_SELECT_SCROLL_EXTENT)
+		initializer.data.buildMenu(rootDescription)
+		dropdown:OverrideText(initializer.data.getSummary())
+	end)
+
+	dropdown:OverrideText(initializer.data.getSummary())
+end
+
+---@param setting table
+---@param buildMenu fun(rootDescription: table)
+---@param getSummary fun(): string
+---@return table
+local function CreateMultiSelectInitializer(setting, buildMenu, getSummary)
+	-- Options stay empty; the menu is built by buildMenu instead of the option inserter.
+	local initializer = Settings.CreateControlInitializer("XephUIMultiSelectDropdownControlTemplate", setting, {}, nil)
+
+	initializer.data.buildMenu = buildMenu
+	initializer.data.getSummary = getSummary
+
+	return initializer
+end
+
 table.insert(Private.LoginFnQueue, function()
 	if not XephUISaved.AddonManagement then
 		return
