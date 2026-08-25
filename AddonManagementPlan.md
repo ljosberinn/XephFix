@@ -632,7 +632,8 @@ The stock `GENERIC_INPUT_BOX` cannot pre-fill its edit box, which rename needs, 
 
 ```lua
 StaticPopupDialogs["XEPHUI_ADDON_PROFILE_NAME"] = {
-	text = "%s",
+	-- Empty, not "%s": OnShow supplies the text directly, as GENERIC_INPUT_BOX/GENERIC_DROP_DOWN do.
+	text = "",
 	button1 = ACCEPT,
 	button2 = CANCEL,
 	hasEditBox = 1,
@@ -799,7 +800,7 @@ local function BuildSettings()
 				RefreshPanel()
 			end,
 		})
-	end, "Creates an empty profile containing the current character."))
+	end, "Creates an empty profile containing the current character.", true))
 
 	layout:AddInitializer(CreateSettingsButtonInitializer("", "Rename Profile", function()
 		local profile = GetEditingProfile()
@@ -820,7 +821,7 @@ local function BuildSettings()
 				RefreshPanel()
 			end,
 		})
-	end))
+	end, nil, true))
 
 	layout:AddInitializer(CreateSettingsButtonInitializer("", "Delete Profile", function()
 		local profile = GetEditingProfile()
@@ -830,14 +831,16 @@ local function BuildSettings()
 		end
 
 		StaticPopup_ShowCustomGenericConfirmation({
-			text = "Delete the profile \"" .. profile.Name .. "\"?",
+			-- GENERIC_CONFIRMATION's OnShow formats data.text, so a literal "%" in the name would break it if concatenated in directly.
+			text = 'Delete the profile "%s"?',
+			text_arg1 = profile.Name,
 			callback = function()
 				DeleteProfile(profile.Id)
 				editingProfileId = nil
 				RefreshPanel()
 			end,
 		})
-	end))
+	end, nil, true))
 
 	layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Profile Contents"))
 ```
