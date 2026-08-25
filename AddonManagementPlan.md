@@ -404,22 +404,23 @@ end
 
 ---@param profile table
 local function ApplyProfile(profile)
-	local characterName = UnitName("player")
+	-- C_AddOns.EnableAddOn/DisableAddOn take the player's GUID, not their name; see Blizzard_AddonList/AddonList.lua's addonCharacter.
+	local characterGuid = UnitGUID("player")
 
 	for index = 1, C_AddOns.GetNumAddOns() do
 		local name = C_AddOns.GetAddOnInfo(index)
 
 		if IsManagedAddon(name) then
 			if profile.Addons[name] then
-				C_AddOns.EnableAddOn(name, characterName)
+				C_AddOns.EnableAddOn(name, characterGuid)
 			else
-				C_AddOns.DisableAddOn(name, characterName)
+				C_AddOns.DisableAddOn(name, characterGuid)
 			end
 		end
 	end
 
 	-- Disabling the host would strand the profile UI with no way back in game.
-	C_AddOns.EnableAddOn(addonName, characterName)
+	C_AddOns.EnableAddOn(addonName, characterGuid)
 	C_AddOns.SaveAddOns()
 
 	GetDatabase().ActiveProfile[GetCharacterKey()] = profile.Id
@@ -562,10 +563,7 @@ function XephUIMultiSelectDropdownControlMixin:SetupDropdownMenu(_, _, _, _, ini
 	dropdown:SetupMenu(function(_, rootDescription)
 		rootDescription:SetScrollMode(MULTI_SELECT_SCROLL_EXTENT)
 		initializer.data.buildMenu(rootDescription)
-		dropdown:OverrideText(initializer.data.getSummary())
 	end)
-
-	dropdown:OverrideText(initializer.data.getSummary())
 end
 
 ---@param setting table
@@ -577,7 +575,8 @@ local function CreateMultiSelectInitializer(setting, buildMenu, getSummary)
 	local initializer = Settings.CreateControlInitializer("XephUIMultiSelectDropdownControlTemplate", setting, {}, nil)
 
 	initializer.data.buildMenu = buildMenu
-	initializer.data.getSummary = getSummary
+	-- SettingsDropdownControlMixin:InitDropdown wires this into Dropdown:SetSelectionText, which the menu framework re-invokes on every checkbox toggle, not just on menu open.
+	initializer.getSelectionTextFunc = getSummary
 
 	return initializer
 end
@@ -642,6 +641,9 @@ StaticPopupDialogs["XEPHUI_ADDON_PROFILE_NAME"] = {
 		dialog:SetText(data.text)
 		dialog:GetEditBox():SetText(data.name or "")
 		dialog:GetEditBox():HighlightText()
+
+		-- SetupStartDelay unconditionally enables button 1, and OnHide already cleared the edit box, so SetText above fires no OnTextChanged to correct it.
+		StaticPopup_StandardNonEmptyTextHandler(dialog:GetEditBox())
 	end,
 	OnAccept = function(dialog, data)
 		data.callback(strtrim(dialog:GetEditBox():GetText()))
@@ -697,7 +699,7 @@ end
 ```lua
 local PANEL_TITLE = "XephUI Addon Management"
 local NO_PROFILE_LABEL = "No profile"
-local NONE_SELECTED_LABEL = "None"
+local NONE_SELECTED_LABEL = NONE
 
 local editingProfileId
 local settingsCategory
@@ -793,6 +795,12 @@ local function BuildSettings()
 			text = "Name the new profile.",
 			callback = function(name)
 				if not IsNameAvailable(name, nil) then
+					if name == "" then
+						print("|cff33ff99XephUI|r: profile name cannot be empty.")
+					else
+						print('|cff33ff99XephUI|r: a profile named "' .. name .. '" already exists.')
+					end
+
 					return
 				end
 
@@ -814,6 +822,12 @@ local function BuildSettings()
 			name = profile.Name,
 			callback = function(name)
 				if not IsNameAvailable(name, profile.Id) then
+					if name == "" then
+						print("|cff33ff99XephUI|r: profile name cannot be empty.")
+					else
+						print('|cff33ff99XephUI|r: a profile named "' .. name .. '" already exists.')
+					end
+
 					return
 				end
 
@@ -948,7 +962,12 @@ Continue inside `BuildSettings`:
 		"XephUIAddonManagementContentTypes",
 		Settings.VarType.Number,
 		"Content Types",
-		0,
+		-- A function, not a fixed 0: SetValueToDefault would otherwise wipe the edited profile's content types via the setter below.
+		function()
+			local profile = GetEditingProfile()
+
+			return profile and ContentTypesToMask(profile.ContentTypes) or 0
+		end,
 		function()
 			local profile = GetEditingProfile()
 
@@ -1065,6 +1084,7 @@ git commit -m "Add the addon profile settings panel"
 Insert above `BuildSettings`:
 
 ```lua
+-- Neither ID has a DifficultyUtil.ID constant; both are observed values with no verifiable Blizzard source.
 local FOLLOWER_DUNGEON_DIFFICULTY_ID = 205
 local DELVE_DIFFICULTY_ID = 208
 

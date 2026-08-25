@@ -72,9 +72,12 @@ Precondition: wipe leftover test data first:
   ```
   Expected: the Settings window opens on a category named **XephUI Addon Management** in the AddOns list, showing rows: Profile, New Profile, Rename Profile, Delete Profile, a "Profile Contents" header, Addons, Characters, Content Types.
 - [ ] Click **New Profile**, type `Raid`, accept. Expected: the Profile dropdown now reads `Raid`.
+- [ ] Click **New Profile** again, leave the edit box empty. Expected: **Accept** is disabled. Type `Raid` (the name just used) and press Accept (or Enter). Expected: the dialog does not close and a chat message reports the name is already taken, rather than silently doing nothing.
 - [ ] Open the **Addons** dropdown. Expected: a scrolling checkbox list of your non-Blizzard addons, XephUI absent. Tick three. Expected: the closed dropdown reads `3 / <total>`.
+- [ ] Reopen the **Addons** dropdown, tick a fourth box, then close the dropdown without reopening it. Expected: the collapsed summary immediately reads `4 / <total>` — the count updates live, not only the next time the dropdown is opened.
 - [ ] Open the **Characters** dropdown. Expected: the current character listed once, in class colour, already ticked.
 - [ ] Open the **Content Types** dropdown. Expected: six checkboxes, no stepper arrows either side. Tick `Raid`.
+- [ ] With `Raid` still selected in the Profile dropdown and its Content Types ticked, press the settings category's **Defaults** button. Expected: the Content Types ticks are unchanged afterward — confirms Defaults does not wipe `profile.ContentTypes`.
 - [ ] Run:
   ```
   /reload
@@ -97,6 +100,7 @@ Precondition: through the settings panel, set up two profiles: `Open World` with
 - [ ] Press **Escape**. Expected: the dialog closes and does not return while you stay in the raid.
 - [ ] Zone out to the open world, then back into the raid. Expected: the dialog appears again. This confirms the dismissal is scoped to one content-type change.
 - [ ] Accept it. Expected: the UI reloads and the raid profile's addon set is active.
+- [ ] Open the game's own AddOns list. Expected: every addon in the raid profile's `Addons` set is checked and every other non-Blizzard addon is unchecked — verify the actual AddOns list, not just that a reload happened. This is the regression check for the Critical (`ApplyProfile` was passing the wrong character argument to `C_AddOns.EnableAddOn`/`DisableAddOn`, which silently no-oped while `ActiveProfile` still recorded success).
 - [ ] Add a third profile also flagged Raid, containing the current character. Zone out and back in. Expected: the dialog's dropdown lists both raid profiles.
 - [ ] Uncheck the current character from one of those profiles. Zone out and back in. Expected: only the remaining profile is offered. This confirms the soft gate.
 
