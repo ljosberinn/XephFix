@@ -199,6 +199,36 @@ local function ApplyProfile(profile)
 	ReloadUI()
 end
 
+StaticPopupDialogs["XEPHUI_ADDON_PROFILE_NAME"] = {
+	text = "%s",
+	button1 = ACCEPT,
+	button2 = CANCEL,
+	hasEditBox = 1,
+	OnShow = function(dialog, data)
+		dialog:SetText(data.text)
+		dialog:GetEditBox():SetText(data.name or "")
+		dialog:GetEditBox():HighlightText()
+	end,
+	OnAccept = function(dialog, data)
+		data.callback(strtrim(dialog:GetEditBox():GetText()))
+	end,
+	EditBoxOnEnterPressed = function(editBox, data)
+		local dialog = editBox:GetParent()
+
+		if not dialog:GetButton1():IsEnabled() then
+			return
+		end
+
+		data.callback(strtrim(editBox:GetText()))
+		dialog:Hide()
+	end,
+	EditBoxOnTextChanged = StaticPopup_StandardNonEmptyTextHandler,
+	EditBoxOnEscapePressed = StaticPopup_StandardEditBoxOnEscapePressed,
+	hideOnEscape = 1,
+	timeout = 0,
+	whileDead = 1,
+}
+
 local MULTI_SELECT_SCROLL_EXTENT = 400
 
 XephUIMultiSelectDropdownControlMixin = CreateFromMixins(SettingsDropdownControlMixin)
@@ -236,12 +266,312 @@ local function CreateMultiSelectInitializer(setting, buildMenu, getSummary)
 	return initializer
 end
 
+---@param contentTypes table<number, boolean>
+---@return number
+local function ContentTypesToMask(contentTypes)
+	local mask = 0
+
+	for value in pairs(contentTypes) do
+		mask = bit.bor(mask, bit.lshift(1, value - 1))
+	end
+
+	return mask
+end
+
+---@param mask number
+---@param contentTypes table<number, boolean>
+local function ApplyMaskToContentTypes(mask, contentTypes)
+	table.wipe(contentTypes)
+
+	for _, value in ipairs(CONTENT_TYPE_ORDER) do
+		if bit.band(mask, bit.lshift(1, value - 1)) ~= 0 then
+			contentTypes[value] = true
+		end
+	end
+end
+
+local PANEL_TITLE = "XephUI Addon Management"
+local NO_PROFILE_LABEL = "No profile"
+local NONE_SELECTED_LABEL = "None"
+
+local editingProfileId
+local settingsCategory
+
+---@return table?
+local function GetEditingProfile()
+	if not editingProfileId then
+		return nil
+	end
+
+	return (FindProfileById(editingProfileId))
+end
+
+local function RefreshPanel()
+	Settings.NotifyUpdate("XephUIAddonManagementProfile")
+	Settings.NotifyUpdate("XephUIAddonManagementAddons")
+	Settings.NotifyUpdate("XephUIAddonManagementCharacters")
+	Settings.NotifyUpdate("XephUIAddonManagementContentTypes")
+end
+
+---@param selected table<string, boolean>
+---@param total number
+---@return string
+local function SummariseSelection(selected, total)
+	local count = 0
+
+	for _ in pairs(selected) do
+		count = count + 1
+	end
+
+	if count == 0 then
+		return NONE_SELECTED_LABEL
+	end
+
+	return count .. " / " .. total
+end
+
+---@param characterKey string
+---@param className string?
+---@return string
+local function GetCharacterLabel(characterKey, className)
+	local color = className and C_ClassColor.GetClassColor(className)
+
+	if not color then
+		return characterKey
+	end
+
+	return color:WrapTextInColorCode(characterKey)
+end
+
+local function BuildSettings()
+	local category, layout = Settings.RegisterVerticalLayoutCategory(PANEL_TITLE)
+
+	settingsCategory = category
+
+	layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Profiles"))
+
+	local profileSetting = Settings.RegisterProxySetting(
+		category,
+		"XephUIAddonManagementProfile",
+		Settings.VarType.Number,
+		"Profile",
+		0,
+		function()
+			return editingProfileId or 0
+		end,
+		function(value)
+			editingProfileId = value ~= 0 and value or nil
+			RefreshPanel()
+		end
+	)
+
+	Settings.CreateDropdown(category, profileSetting, function()
+		local container = Settings.CreateControlTextContainer()
+		local profiles = GetDatabase().Profiles
+
+		if #profiles == 0 then
+			container:Add(0, NO_PROFILE_LABEL)
+		end
+
+		for _, profile in ipairs(profiles) do
+			container:Add(profile.Id, profile.Name)
+		end
+
+		return container:GetData()
+	end, "Profile edited below. Selecting a profile here does not apply it.")
+
+	layout:AddInitializer(CreateSettingsButtonInitializer("", "New Profile", function()
+		StaticPopup_Show("XEPHUI_ADDON_PROFILE_NAME", nil, nil, {
+			text = "Name the new profile.",
+			callback = function(name)
+				if not IsNameAvailable(name, nil) then
+					return
+				end
+
+				editingProfileId = CreateProfile(name).Id
+				RefreshPanel()
+			end,
+		})
+	end, "Creates an empty profile containing the current character."))
+
+	layout:AddInitializer(CreateSettingsButtonInitializer("", "Rename Profile", function()
+		local profile = GetEditingProfile()
+
+		if not profile then
+			return
+		end
+
+		StaticPopup_Show("XEPHUI_ADDON_PROFILE_NAME", nil, nil, {
+			text = "Rename this profile.",
+			name = profile.Name,
+			callback = function(name)
+				if not IsNameAvailable(name, profile.Id) then
+					return
+				end
+
+				RenameProfile(profile.Id, name)
+				RefreshPanel()
+			end,
+		})
+	end))
+
+	layout:AddInitializer(CreateSettingsButtonInitializer("", "Delete Profile", function()
+		local profile = GetEditingProfile()
+
+		if not profile then
+			return
+		end
+
+		StaticPopup_ShowCustomGenericConfirmation({
+			text = 'Delete the profile "' .. profile.Name .. '"?',
+			callback = function()
+				DeleteProfile(profile.Id)
+				editingProfileId = nil
+				RefreshPanel()
+			end,
+		})
+	end))
+
+	layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Profile Contents"))
+
+	local addonsSetting = Settings.RegisterProxySetting(
+		category,
+		"XephUIAddonManagementAddons",
+		Settings.VarType.Number,
+		"Addons",
+		0,
+		function()
+			return editingProfileId or 0
+		end,
+		function() end
+	)
+
+	layout:AddInitializer(CreateMultiSelectInitializer(addonsSetting, function(rootDescription)
+		local profile = GetEditingProfile()
+
+		if not profile then
+			return
+		end
+
+		for _, addon in ipairs(GetManagedAddons()) do
+			rootDescription:CreateCheckbox(addon.title, function()
+				return profile.Addons[addon.name] == true
+			end, function()
+				profile.Addons[addon.name] = not profile.Addons[addon.name] or nil
+			end)
+		end
+	end, function()
+		local profile = GetEditingProfile()
+
+		if not profile then
+			return NONE_SELECTED_LABEL
+		end
+
+		return SummariseSelection(profile.Addons, #GetManagedAddons())
+	end))
+
+	local charactersSetting = Settings.RegisterProxySetting(
+		category,
+		"XephUIAddonManagementCharacters",
+		Settings.VarType.Number,
+		"Characters",
+		0,
+		function()
+			return editingProfileId or 0
+		end,
+		function() end
+	)
+
+	layout:AddInitializer(CreateMultiSelectInitializer(charactersSetting, function(rootDescription)
+		local profile = GetEditingProfile()
+
+		if not profile then
+			return
+		end
+
+		local characterKeys = GetKeysArray(GetDatabase().KnownCharacters)
+		table.sort(characterKeys)
+
+		for _, characterKey in ipairs(characterKeys) do
+			local label = GetCharacterLabel(characterKey, GetDatabase().KnownCharacters[characterKey])
+
+			rootDescription:CreateCheckbox(label, function()
+				return profile.Characters[characterKey] == true
+			end, function()
+				profile.Characters[characterKey] = not profile.Characters[characterKey] or nil
+			end)
+		end
+	end, function()
+		local profile = GetEditingProfile()
+
+		if not profile then
+			return NONE_SELECTED_LABEL
+		end
+
+		local total = 0
+
+		for _ in pairs(GetDatabase().KnownCharacters) do
+			total = total + 1
+		end
+
+		return SummariseSelection(profile.Characters, total)
+	end))
+
+	local contentTypesSetting = Settings.RegisterProxySetting(
+		category,
+		"XephUIAddonManagementContentTypes",
+		Settings.VarType.Number,
+		"Content Types",
+		0,
+		function()
+			local profile = GetEditingProfile()
+
+			if not profile then
+				return 0
+			end
+
+			return ContentTypesToMask(profile.ContentTypes)
+		end,
+		function(mask)
+			local profile = GetEditingProfile()
+
+			if not profile then
+				return
+			end
+
+			ApplyMaskToContentTypes(mask, profile.ContentTypes)
+		end
+	)
+
+	Settings.CreateDropdown(category, contentTypesSetting, function()
+		local container = Settings.CreateControlTextContainer()
+
+		for _, value in ipairs(CONTENT_TYPE_ORDER) do
+			container:AddCheckbox(value, CONTENT_TYPE_LABELS[value])
+		end
+
+		return container:GetData()
+	end, "Content this profile is offered for.")
+
+	Settings.RegisterAddOnCategory(category)
+end
+
+OpenSettings = function()
+	if not settingsCategory then
+		return
+	end
+
+	Settings.OpenToCategory(settingsCategory:GetID())
+end
+
 table.insert(Private.LoginFnQueue, function()
 	if not XephUISaved.AddonManagement then
 		return
 	end
 
 	RecordCharacter()
+
+	BuildSettings()
 
 	SLASH_XEPHUI1 = "/xephui"
 
