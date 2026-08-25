@@ -6,3 +6,5 @@ ignore:
   - .stylua.toml
   - README.md
   - .gitignore
+  - AddonManagementPlan.md
+  - IN_GAME_VERIFICATION.md

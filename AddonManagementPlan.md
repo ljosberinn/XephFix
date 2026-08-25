@@ -73,7 +73,7 @@ Rules:
 - **Profile identity is `Id`, never the array index and never the name.** Deleting or reordering profiles must not break `ActiveProfile`.
 - **Two different character identifiers exist and must not be confused.**
   - *Character key* — `"Name-Realm"`, used for `KnownCharacters`, `ActiveProfile`, and `Profile.Characters`.
-  - *Addon API character name* — the bare `UnitName("player")`, the only form `C_AddOns.EnableAddOn` / `DisableAddOn` accept.
+  - *Addon API character identifier* — `UnitGUID("player")`, the form `C_AddOns.EnableAddOn` / `DisableAddOn` accept (see `Blizzard_AddonList/AddonList.lua`'s `addonCharacter`).
 - `KnownCharacters` grows one entry per login. This is the "lazy population": a character is only offered in the character multi-select after it has logged in once.
 - A newly created profile automatically contains the creating character in `Characters`.
 - **Soft gate:** every profile is selectable and editable from any character. `Characters` restricts only which profiles the content-type swap prompt may offer.
@@ -106,7 +106,7 @@ Evaluated on `PLAYER_ENTERING_WORLD` and `LOADING_SCREEN_DISABLED`:
 4. Collect candidate profiles: `ContentTypes[current]` is set **and** `Characters[characterKey]` is set. If none, stop.
 5. Show `GENERIC_DROP_DOWN` listing every candidate. Accepting applies the chosen profile and reloads.
 
-Step 1 is the entire dismissal story: because the prompt only fires on a *change* of content type, dismissing it (Cancel or Escape — `GENERIC_DROP_DOWN` sets `hideOnEscape = 1`) needs no extra suppression state and cannot re-fire until the player enters different content.
+Step 1 is the entire dismissal story: because the prompt only fires on a *change* of content type, dismissing it (Cancel or Escape — `GENERIC_DROP_DOWN` sets `hideOnEscape = 1`) needs no extra suppression state. `lastContentType` is file-local and unpersisted, so this guard is per-session only: it resets on `/reload` and the prompt can fire again for the same content type after one.
 
 ---
 
@@ -778,9 +778,8 @@ local function BuildSettings()
 		local container = Settings.CreateControlTextContainer()
 		local profiles = GetDatabase().Profiles
 
-		if #profiles == 0 then
-			container:Add(0, NO_PROFILE_LABEL)
-		end
+		-- editingProfileId is not persisted, so option 0 must always exist to match the getter's fallback on login and after a delete.
+		container:Add(0, NO_PROFILE_LABEL)
 
 		for _, profile in ipairs(profiles) do
 			container:Add(profile.Id, profile.Name)
@@ -801,7 +800,7 @@ local function BuildSettings()
 				RefreshPanel()
 			end,
 		})
-	end, "Creates an empty profile containing the current character.", true))
+	end, nil, true))
 
 	layout:AddInitializer(CreateSettingsButtonInitializer("", "Rename Profile", function()
 		local profile = GetEditingProfile()

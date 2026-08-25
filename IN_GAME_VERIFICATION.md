@@ -115,7 +115,7 @@ Precondition: through the settings panel, set up two profiles: `Open World` with
   ```
   /reload
   ```
-  Expected: no Lua errors, and `/xephui` still opens the settings category. (Confirms removing the superseded `AddonSuiteProfileSwapReminder` module didn't break anything.)
+  Expected: no Lua errors, and `/xephui` still opens the settings category. (Confirms removing the retired profile swap reminder module didn't break anything.)
 
 ## The second-character flow
 
@@ -132,7 +132,7 @@ This needs a relog — do it last.
 
 ## Final pre-merge checklist
 
-From `AddonManagementPlan.md` Task 7's pre-merge sign-off list (`stylua --check` and the `git grep` sweeps were already run mechanically — see `task-7-report.md`):
+From `AddonManagementPlan.md` Task 7's pre-merge sign-off list (`stylua --check` and the `git grep` sweeps were already run mechanically):
 
 - [ ] Profiles survive a reload
 - [ ] Applying a profile enables exactly its addon set and nothing else
