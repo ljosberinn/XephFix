@@ -27,6 +27,9 @@ local CONTENT_TYPE_LABELS = {
 	[ContentType.Battleground] = "Battleground",
 }
 
+-- Assigned once the settings category exists.
+local OpenSettings
+
 -- Separate key because XephUISaved.AddonManagement is the boolean module toggle.
 ---@return table
 local function GetDatabase()
@@ -145,10 +148,85 @@ local function GetActiveProfile()
 	return (FindProfileById(profileId))
 end
 
+---@param name string
+---@return boolean
+local function IsManagedAddon(name)
+	return not string.find(name, "^Blizzard_") and name ~= addonName
+end
+
+---@return table[]
+local function GetManagedAddons()
+	local addons = {}
+
+	for index = 1, C_AddOns.GetNumAddOns() do
+		local name, title = C_AddOns.GetAddOnInfo(index)
+
+		if IsManagedAddon(name) then
+			table.insert(addons, { name = name, title = (title ~= nil and title ~= "") and title or name })
+		end
+	end
+
+	-- Sorted by folder name because titles carry colour escapes.
+	table.sort(addons, function(left, right)
+		return left.name < right.name
+	end)
+
+	return addons
+end
+
+---@param profile table
+local function ApplyProfile(profile)
+	local characterName = UnitName("player")
+
+	for index = 1, C_AddOns.GetNumAddOns() do
+		local name = C_AddOns.GetAddOnInfo(index)
+
+		if IsManagedAddon(name) then
+			if profile.Addons[name] then
+				C_AddOns.EnableAddOn(name, characterName)
+			else
+				C_AddOns.DisableAddOn(name, characterName)
+			end
+		end
+	end
+
+	-- Disabling the host would strand the profile UI with no way back in game.
+	C_AddOns.EnableAddOn(addonName, characterName)
+	C_AddOns.SaveAddOns()
+
+	GetDatabase().ActiveProfile[GetCharacterKey()] = profile.Id
+
+	ReloadUI()
+end
+
 table.insert(Private.LoginFnQueue, function()
 	if not XephUISaved.AddonManagement then
 		return
 	end
 
 	RecordCharacter()
+
+	SLASH_XEPHUI1 = "/xephui"
+
+	SlashCmdList["XEPHUI"] = function(argument)
+		local name = strtrim(argument)
+
+		if name == "" then
+			OpenSettings()
+			return
+		end
+
+		for _, profile in ipairs(GetDatabase().Profiles) do
+			if profile.Name == name then
+				ApplyProfile(profile)
+				return
+			end
+		end
+
+		print('|cff33ff99XephUI|r: no profile named "' .. name .. '". Available:')
+
+		for _, profile in ipairs(GetDatabase().Profiles) do
+			print(" - " .. profile.Name)
+		end
+	end
 end)
