@@ -343,6 +343,109 @@ local function GetCharacterLabel(characterKey, className)
 	return color:WrapTextInColorCode(characterKey)
 end
 
+local FOLLOWER_DUNGEON_DIFFICULTY_ID = 205
+local DELVE_DIFFICULTY_ID = 208
+
+---@param instanceType string
+---@param difficultyId number
+---@return number
+local function ResolveContentType(instanceType, difficultyId)
+	if instanceType == "raid" then
+		return ContentType.Raid
+	end
+
+	if
+		instanceType == "party"
+		and (
+			difficultyId == DifficultyUtil.ID.DungeonTimewalker
+			or difficultyId == DifficultyUtil.ID.DungeonNormal
+			or difficultyId == DifficultyUtil.ID.DungeonHeroic
+			or difficultyId == DifficultyUtil.ID.DungeonMythic
+			or difficultyId == DifficultyUtil.ID.DungeonChallenge
+			or difficultyId == FOLLOWER_DUNGEON_DIFFICULTY_ID
+		)
+	then
+		return ContentType.Dungeon
+	end
+
+	if instanceType == "pvp" then
+		return ContentType.Battleground
+	end
+
+	if instanceType == "arena" then
+		return ContentType.Arena
+	end
+
+	if instanceType == "scenario" and difficultyId == DELVE_DIFFICULTY_ID then
+		return ContentType.Delve
+	end
+
+	return ContentType.OpenWorld
+end
+
+local lastContentType
+
+---@param contentType number
+---@return table[]
+local function GetCandidateProfiles(contentType)
+	local characterKey = GetCharacterKey()
+	local candidates = {}
+
+	for _, profile in ipairs(GetDatabase().Profiles) do
+		if profile.ContentTypes[contentType] and profile.Characters[characterKey] then
+			table.insert(candidates, profile)
+		end
+	end
+
+	return candidates
+end
+
+local function EvaluateContentType()
+	local _, instanceType, difficultyId = GetInstanceInfo()
+	local contentType = ResolveContentType(instanceType, difficultyId)
+
+	-- Only a change may prompt, which is also what makes a dismissal stick.
+	if contentType == lastContentType then
+		return
+	end
+
+	lastContentType = contentType
+
+	local activeProfile = GetActiveProfile()
+
+	if activeProfile and activeProfile.ContentTypes[contentType] then
+		return
+	end
+
+	local candidates = GetCandidateProfiles(contentType)
+
+	if #candidates == 0 then
+		return
+	end
+
+	local options = {}
+
+	for _, profile in ipairs(candidates) do
+		table.insert(options, { text = profile.Name, value = profile.Id })
+	end
+
+	StaticPopup_ShowGenericDropdown(
+		"Content changed to " .. CONTENT_TYPE_LABELS[contentType] .. ". Switch addon profile and reload?",
+		function(profileId)
+			local profile = FindProfileById(profileId)
+
+			if not profile then
+				return
+			end
+
+			ApplyProfile(profile)
+		end,
+		options,
+		true,
+		options[1].value
+	)
+end
+
 local function BuildSettings()
 	local category, layout = Settings.RegisterVerticalLayoutCategory(PANEL_TITLE)
 
@@ -572,6 +675,9 @@ table.insert(Private.LoginFnQueue, function()
 	RecordCharacter()
 
 	BuildSettings()
+
+	EventRegistry:RegisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", EvaluateContentType)
+	EventRegistry:RegisterFrameEventAndCallback("LOADING_SCREEN_DISABLED", EvaluateContentType)
 
 	SLASH_XEPHUI1 = "/xephui"
 
