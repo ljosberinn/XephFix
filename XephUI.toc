@@ -12,6 +12,7 @@ Libs/LibKeystone/LibKeystone/LibKeystone.lua
 
 Init.lua
 
+Modules/AddonManagement.lua
 Modules/AddonSuiteProfileSwapReminder.lua
 Modules/AutoDialogueInteraction.lua
 Modules/AutoGreet.lua
