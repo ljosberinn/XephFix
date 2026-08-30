@@ -1,0 +1,8 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<Frame name="XephUIMultiSelectDropdownControlTemplate" inherits="SettingsListElementTemplate" mixin="XephUIMultiSelectDropdownControlMixin" virtual="true">
+		<Size x="280" y="26"/>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</Frame>
+</Ui>

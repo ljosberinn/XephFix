@@ -12,7 +12,7 @@ Libs/LibKeystone/LibKeystone/LibKeystone.lua
 
 Init.lua
 
-Modules/AddonSuiteProfileSwapReminder.lua
+Modules/AddonManagement.lua
 Modules/AutoDialogueInteraction.lua
 Modules/AutoGreet.lua
 Modules/AutoKeystone.lua
@@ -46,3 +46,4 @@ Modules/TalentReminders.lua
 Modules/TooltipIDs.lua
 Modules/UIScale.lua
 Modules/UnitTooltipEnhancements.lua
+Templates/AddonManagement.xml

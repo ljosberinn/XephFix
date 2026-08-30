@@ -12,9 +12,7 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
 
 ## Modules
 
-- AddonSuiteProfileSwapReminder
-  - only loads if you have the addon `AddonSuite` installed
-  - reminder for myself to swap addon profile depending on whether I'm in raid or not
+- AddonManagement
 - AutoDialogueInteraction
   - automatically selects specific gossip options in certain dungeons (Pit of Saron, Algeth'ar Academy, etc.)
 - AutoGreet

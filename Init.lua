@@ -4,7 +4,7 @@ Private.LoginFnQueue = {}
 
 EventUtil.ContinueOnAddOnLoaded(addonName, function()
 	local defaults = {
-		AddonSuiteProfileSwapReminder = true,
+		AddonManagement = true,
 		AutoDialogueInteraction = true,
 		AutoGreet = true,
 		AutoKeystone = true,

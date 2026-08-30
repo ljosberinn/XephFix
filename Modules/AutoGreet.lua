@@ -6,10 +6,21 @@ table.insert(Private.LoginFnQueue, function()
 	end
 
 	local lastGroupSize = 0
+	local hasGroupBaseline = false
+
+	---@return number
+	local function GetPartySize()
+		if IsInRaid() then
+			return 0
+		end
+
+		return GetNumGroupMembers()
+	end
 
 	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("GROUP_JOINED")
 	frame:RegisterEvent("GROUP_ROSTER_UPDATE")
+	frame:RegisterEvent("LOADING_SCREEN_DISABLED")
 	frame.timer = nil
 
 	function frame:DoGreeting()
@@ -47,27 +58,31 @@ table.insert(Private.LoginFnQueue, function()
 		if event == "PLAYER_REGEN_ENABLED" then
 			self:UnregisterEvent("PLAYER_REGEN_ENABLED")
 			self:DoGreeting()
+		elseif event == "LOADING_SCREEN_DISABLED" then
+			-- Zoning and reloads replay the roster from scratch, so resync instead of
+			-- reading the rebuilt group as people joining.
+			lastGroupSize = GetPartySize()
+			hasGroupBaseline = true
 		elseif event == "GROUP_JOINED" then
 			if IsInRaid() then
 				return
 			end
 
-			lastGroupSize = GetNumGroupMembers()
+			lastGroupSize = GetPartySize()
+			hasGroupBaseline = true
 
 			self:GreetAfterCombat()
 		elseif event == "GROUP_ROSTER_UPDATE" then
-			if IsInRaid() then
-				lastGroupSize = 0
-				return
-			end
+			local currentSize = GetPartySize()
 
-			local currentSize = GetNumGroupMembers()
-
-			if currentSize > lastGroupSize then
+			-- The first roster update of a session reports an existing group; it is a
+			-- baseline, not a join.
+			if hasGroupBaseline and currentSize > lastGroupSize then
 				self:GreetAfterCombat()
 			end
 
 			lastGroupSize = currentSize
+			hasGroupBaseline = true
 		end
 	end)
 end)
