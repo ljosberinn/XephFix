@@ -13,11 +13,6 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
 ## Modules
 
 - AddonManagement
-  - named profiles, each holding a set of addons
-  - created, renamed and deleted in the settings under "XephUI Addon Management"; each can be linked to content types and characters
-  - applying a profile enables exactly its addon set and reloads
-  - /xephui opens the settings, /xephui <name> applies a profile; a dismissable popup offers to swap profiles when the content type changes
-  - an addon disabled by a missing dependency stays disabled after applying a profile, with no feedback in the panel
 - AutoDialogueInteraction
   - automatically selects specific gossip options in certain dungeons (Pit of Saron, Algeth'ar Academy, etc.)
 - AutoGreet
