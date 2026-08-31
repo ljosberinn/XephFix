@@ -41,7 +41,6 @@ table.insert(Private.LoginFnQueue, function()
 	local updateTicker = nil
 	local parkedIcon = nil
 	local fallbackFrame = nil
-	local hasInstalledTimelineHooks = false
 
 	local eventFrame = CreateFrame("Frame")
 	eventFrame:RegisterEvent("CHAT_MSG_ADDON")
@@ -112,153 +111,19 @@ table.insert(Private.LoginFnQueue, function()
 		return trackOffsets.offsetStart + index * trackOffsets.sortedEventExtent
 	end
 
-	-- StartPrimaryAxisSortedTranslation synthesizes an entry offset one slot further from the medium
-	-- end than the resting slot whenever a frame enters a sorted track while hidden, then slides in
-	-- over SortedTrackTranslationDuration. A frame is never acquired while an event sits in the
-	-- indeterminate track, so every arrival into the long track is such an initial entry. Parking on
-	-- the entry offset rather than the resting one is what stops the handoff popping backwards.
-	---@param trackOffsets table
-	---@param trackSortIndex number
-	---@return number
-	local function ComputeSortedEventEntryOffset(trackOffsets, trackSortIndex)
-		return ComputeSortedEventOffset(trackOffsets, trackSortIndex + 1)
-	end
-
-	-- Compute the geometry rather than reading it, but cross-check against the live values whenever
-	-- they are valid: a future change to EncounterTimelineTrackLayout.lua would otherwise misplace
-	-- the parked icon with no signal at all. Returns nil while the live layout is not yet built.
-	---@param offsetsByTrack table<number, table>
-	---@param primaryAxisExtent number
-	---@return boolean?
-	local function ValidateComputedLayout(offsetsByTrack, primaryAxisExtent)
-		local trackView = EncounterTimeline:GetTrackView()
-
-		if not trackView:HasTrack(Enum.EncounterTimelineTrack.Long) or trackView:IsLayoutDirty() then
-			return nil
-		end
-
-		if math.abs(trackView:GetPrimaryAxisExtent() - primaryAxisExtent) > OFFSET_TOLERANCE then
-			return false
-		end
-
-		local longOffsets = offsetsByTrack[Enum.EncounterTimelineTrack.Long]
-
-		for trackSortIndex = 1, longOffsets.maximumEventCount do
-			local liveOffset = trackView:CalculateEventOffset(Enum.EncounterTimelineTrack.Long, trackSortIndex, nil)
-			local computedOffset = ComputeSortedEventOffset(longOffsets, trackSortIndex)
-
-			if math.abs(liveOffset - computedOffset) > OFFSET_TOLERANCE then
-				return false
-			end
-		end
-
-		return true
-	end
-
-	---@return boolean
-	local function IsTimelineUsable()
-		-- A mismatch disqualifies the timeline for the rest of the session rather than being
-		-- re-evaluated: it means the replication below no longer describes this build.
-		if isLayoutMismatched then
-			return false
-		end
-
-		-- Blizzard_EncounterTimeline is gated on AllowLoadGameType standard, so neither the frame nor
-		-- the layout globals it defines are guaranteed to exist.
-		if EncounterTimeline == nil or EncounterTimelineTrackLayoutDefaults == nil then
-			return false
-		end
-
-		if not C_EncounterTimeline.IsFeatureEnabled() then
-			return false
-		end
-
-		if C_EncounterTimeline.GetViewType() ~= Enum.EncounterTimelineViewType.Timeline then
-			return false
-		end
-
-		local longOffsets = ComputeTrackLayout()[Enum.EncounterTimelineTrack.Long]
-
-		return longOffsets ~= nil and longOffsets.maximumEventCount ~= math.huge
-	end
-
 	---@return number
 	local function GetHandoffThreshold()
 		return C_EncounterTimeline.GetTrackMaxEventDuration(Enum.EncounterTimelineTrack.Long)
 	end
 
 	-------------------------------------------------------------------------------
-	-- Parked icon
-
-	---@return Frame
-	local function AcquireParkedIcon()
-		if parkedIcon == nil then
-			parkedIcon = CreateFrame("Frame", nil, UIParent, "XephUIBreakTimerParkedIconTemplate")
-			parkedIcon.IconContainer.IconTexture:SetTexture(BREAK_ICON_FILE_ID)
-		end
-
-		return parkedIcon
-	end
-
-	local function ApplyParkedIconCountdown()
-		parkedIcon.Countdown:SetCooldownDuration(breakEndTime - GetTime())
-		parkedIcon.Countdown:Show()
-	end
-
-	local function PositionParkedIcon()
-		local trackView = EncounterTimeline:GetTrackView()
-		local orientation = trackView:GetTrackOrientation()
-		local frameLevel = trackView:GetFrameLevel()
-
-		-- Event frames are anchored by their centre to the track view's start point, and the offset
-		-- origin is the track view rather than EncounterTimeline. The two rects coincide today, but
-		-- only the track view sizes itself from the primary axis extent, so anchor to that.
-		parkedIcon:SetParent(trackView)
-		parkedIcon:ClearAllPoints()
-		parkedIcon:SetPoint("CENTER", trackView, orientation:GetStartPoint(), 0, 0)
-		-- A break is the furthest-out thing on screen, so it is assumed to be alone on the long track.
-		-- Concurrent long-track events would share these coordinates; the timeline offers no lever to
-		-- pin an event to a slot, so there is nothing to arbitrate with.
-		local parkedSortIndex = 1
-
-		parkedIcon:SetPointsOffset(
-			orientation:GetOrientedOffsets(
-				ComputeSortedEventEntryOffset(ComputeTrackLayout()[Enum.EncounterTimelineTrack.Long], parkedSortIndex),
-				trackView:GetCrossAxisOffset()
-			)
-		)
-
-		parkedIcon:SetFrameLevel(frameLevel)
-		parkedIcon.IconContainer:SetFrameLevel(frameLevel + MEDIUM_SEVERITY_FRAME_LEVEL_OFFSET)
-		parkedIcon.Countdown:SetFrameLevel(frameLevel + MEDIUM_SEVERITY_FRAME_LEVEL_OFFSET)
-		parkedIcon.IconContainer:SetAlpha(LONG_TRACK_ALPHA)
-		parkedIcon.Countdown:SetAlpha(LONG_TRACK_ALPHA)
-	end
-
-	-------------------------------------------------------------------------------
-	-- Fallback display
-
-	---@return Frame
-	local function AcquireFallbackFrame()
-		if fallbackFrame ~= nil then
-			return fallbackFrame
-		end
-
-		fallbackFrame = CreateFrame("Frame", nil, UIParent, "XephUIBreakTimerFallbackTemplate")
-		fallbackFrame.IconContainer.IconTexture:SetTexture(BREAK_ICON_FILE_ID)
-		fallbackFrame:SetPoint("TOP", UIParent, "TOP", 0, -220)
-
-		return fallbackFrame
-	end
+	-- Display phases
 
 	---@param remainingSeconds number
 	local function UpdateFallbackText(remainingSeconds)
 		fallbackFrame.NameText:SetText(breakSender and (BREAK_LABEL .. " - " .. breakSender) or BREAK_LABEL)
 		fallbackFrame.TimeText:SetText(SecondsToClock(remainingSeconds))
 	end
-
-	-------------------------------------------------------------------------------
-	-- Display phases
 
 	local function ReleaseTimeline()
 		if parkedIcon ~= nil then
@@ -274,7 +139,13 @@ table.insert(Private.LoginFnQueue, function()
 
 	local function EnterFallbackPhase()
 		ReleaseTimeline()
-		AcquireFallbackFrame()
+
+		if fallbackFrame == nil then
+			fallbackFrame = CreateFrame("Frame", nil, UIParent, "XephUIBreakTimerFallbackTemplate")
+			fallbackFrame.IconContainer.IconTexture:SetTexture(BREAK_ICON_FILE_ID)
+			fallbackFrame:SetPoint("TOP", UIParent, "TOP", 0, -220)
+		end
+
 		UpdateFallbackText(breakEndTime - GetTime())
 		fallbackFrame:Show()
 
@@ -286,7 +157,10 @@ table.insert(Private.LoginFnQueue, function()
 			fallbackFrame:Hide()
 		end
 
-		AcquireParkedIcon()
+		if parkedIcon == nil then
+			parkedIcon = CreateFrame("Frame", nil, UIParent, "XephUIBreakTimerParkedIconTemplate")
+			parkedIcon.IconContainer.IconTexture:SetTexture(BREAK_ICON_FILE_ID)
+		end
 
 		-- EvaluateVisibility only shows the timeline outside an encounter once it has visible events
 		-- or event frames, and an event above the long track's maximum duration has neither. Forcing
@@ -294,8 +168,41 @@ table.insert(Private.LoginFnQueue, function()
 		-- needs. This writes a field on Blizzard's frame from our tainted stack.
 		EncounterTimeline:SetExplicitlyShown(true)
 
-		PositionParkedIcon()
-		ApplyParkedIconCountdown()
+		do
+			local trackView = EncounterTimeline:GetTrackView()
+			local orientation = trackView:GetTrackOrientation()
+			local frameLevel = trackView:GetFrameLevel()
+
+			-- StartPrimaryAxisSortedTranslation synthesizes an entry offset one slot further from the
+			-- medium end than the resting slot whenever a frame enters a sorted track while hidden,
+			-- then slides in over SortedTrackTranslationDuration. A frame is never acquired while an
+			-- event sits in the indeterminate track, so every arrival into the long track is such an
+			-- initial entry. Parking on the entry offset rather than the resting one is what stops
+			-- the handoff popping backwards.
+			--
+			-- Slot 2 below is therefore the entry offset for slot 1, which is where the break comes to
+			-- rest. It is assumed to be alone on the long track, which it is: a break is the
+			-- furthest-out thing on screen. Concurrent long track events would share these
+			-- coordinates, and the timeline offers no lever to pin an event to a slot.
+			local entryOffset = ComputeSortedEventOffset(ComputeTrackLayout()[Enum.EncounterTimelineTrack.Long], 2)
+
+			-- Event frames are anchored by their centre to the track view's start point, and the
+			-- offset origin is the track view rather than EncounterTimeline. The two rects coincide
+			-- today, but only the track view sizes itself from the primary axis extent.
+			parkedIcon:SetParent(trackView)
+			parkedIcon:ClearAllPoints()
+			parkedIcon:SetPoint("CENTER", trackView, orientation:GetStartPoint(), 0, 0)
+			parkedIcon:SetPointsOffset(orientation:GetOrientedOffsets(entryOffset, trackView:GetCrossAxisOffset()))
+
+			parkedIcon:SetFrameLevel(frameLevel)
+			parkedIcon.IconContainer:SetFrameLevel(frameLevel + MEDIUM_SEVERITY_FRAME_LEVEL_OFFSET)
+			parkedIcon.Countdown:SetFrameLevel(frameLevel + MEDIUM_SEVERITY_FRAME_LEVEL_OFFSET)
+			parkedIcon.IconContainer:SetAlpha(LONG_TRACK_ALPHA)
+			parkedIcon.Countdown:SetAlpha(LONG_TRACK_ALPHA)
+		end
+
+		parkedIcon.Countdown:SetCooldownDuration(breakEndTime - GetTime())
+		parkedIcon.Countdown:Show()
 		parkedIcon:Show()
 
 		currentPhase = Phase.Parked
@@ -315,21 +222,12 @@ table.insert(Private.LoginFnQueue, function()
 		SelectPhase(breakEndTime - GetTime())
 	end
 
-	local function InstallTimelineHooks()
-		if hasInstalledTimelineHooks or EncounterTimeline == nil then
-			return
-		end
-
-		hasInstalledTimelineHooks = true
-
-		local trackView = EncounterTimeline:GetTrackView()
-
-		-- CreateFromMixins copies function references onto the frame, so the mixin tables are not
-		-- the hook target.
-
-		-- A settings change releases and reinitialises every event frame and re-runs the entry
-		-- slide, so the parked icon has to re-derive its offsets from the new layout too.
-		hooksecurefunc(trackView, "OnLayoutUpdated", function()
+	-- CreateFromMixins copies function references onto the frame, so the mixin tables are not the
+	-- hook target.
+	if EncounterTimeline ~= nil then
+		-- A settings change releases and reinitialises every event frame and re-runs the entry slide,
+		-- so the parked icon has to re-derive its offsets from the new layout too.
+		hooksecurefunc(EncounterTimeline:GetTrackView(), "OnLayoutUpdated", function()
 			if currentPhase ~= Phase.Parked then
 				return
 			end
@@ -372,7 +270,23 @@ table.insert(Private.LoginFnQueue, function()
 
 	---@param remainingSeconds number
 	function SelectPhase(remainingSeconds)
-		if not IsTimelineUsable() then
+		local longOffsets
+
+		-- A mismatch disqualifies the timeline for the rest of the session rather than being
+		-- re-evaluated: it means the replication above no longer describes this build.
+		-- Blizzard_EncounterTimeline is gated on AllowLoadGameType standard, so neither the frame nor
+		-- the layout globals it defines are guaranteed to exist either.
+		if
+			not isLayoutMismatched
+			and EncounterTimeline ~= nil
+			and EncounterTimelineTrackLayoutDefaults ~= nil
+			and C_EncounterTimeline.IsFeatureEnabled()
+			and C_EncounterTimeline.GetViewType() == Enum.EncounterTimelineViewType.Timeline
+		then
+			longOffsets = ComputeTrackLayout()[Enum.EncounterTimelineTrack.Long]
+		end
+
+		if longOffsets == nil or longOffsets.maximumEventCount == math.huge then
 			EnterFallbackPhase()
 
 			return
@@ -392,36 +306,16 @@ table.insert(Private.LoginFnQueue, function()
 		end
 	end
 
-	-- The script event is created while it still resolves to the indeterminate track, where no frame
-	-- is acquired for it. Keeping the parked icon up until it has actually moved onto a visible track
-	-- is what stops a gap where neither display is drawn.
-	local function ReleaseParkedIconAfterHandoff()
-		if parkedIcon == nil or not parkedIcon:IsShown() then
-			return
-		end
-
-		if C_EncounterTimeline.GetEventTrack(scriptEventId) == Enum.EncounterTimelineTrack.Indeterminate then
-			return
-		end
-
-		parkedIcon:Hide()
-	end
-
 	-------------------------------------------------------------------------------
 	-- Lifecycle
 
-	local function StopUpdating()
-		if updateTicker == nil then
-			return
-		end
-
-		updateTicker:Cancel()
-		updateTicker = nil
-	end
-
 	---@param shouldCancelScriptEvent boolean
 	local function TearDown(shouldCancelScriptEvent)
-		StopUpdating()
+		if updateTicker ~= nil then
+			updateTicker:Cancel()
+			updateTicker = nil
+		end
+
 		ReleaseTimeline()
 
 		if fallbackFrame ~= nil then
@@ -439,20 +333,35 @@ table.insert(Private.LoginFnQueue, function()
 		hasValidatedLayout = false
 	end
 
+	-- Compute the geometry rather than reading it, but cross-check against the live values as soon as
+	-- they exist: a future change to EncounterTimelineTrackLayout.lua would otherwise misplace the
+	-- parked icon with no signal at all.
 	local function ValidateParkedLayout()
 		if hasValidatedLayout then
 			return
 		end
 
-		local validationResult = ValidateComputedLayout(ComputeTrackLayout())
+		local trackView = EncounterTimeline:GetTrackView()
 
-		if validationResult == nil then
+		-- Blizzard's offsets do not exist until the track view has been shown and laid out.
+		if not trackView:HasTrack(Enum.EncounterTimelineTrack.Long) or trackView:IsLayoutDirty() then
 			return
 		end
 
 		hasValidatedLayout = true
 
-		if validationResult then
+		local offsetsByTrack, primaryAxisExtent = ComputeTrackLayout()
+		local longOffsets = offsetsByTrack[Enum.EncounterTimelineTrack.Long]
+		local matches = math.abs(trackView:GetPrimaryAxisExtent() - primaryAxisExtent) <= OFFSET_TOLERANCE
+
+		for trackSortIndex = 1, longOffsets.maximumEventCount do
+			local liveOffset = trackView:CalculateEventOffset(Enum.EncounterTimelineTrack.Long, trackSortIndex, nil)
+
+			matches = matches
+				and math.abs(liveOffset - ComputeSortedEventOffset(longOffsets, trackSortIndex)) <= OFFSET_TOLERANCE
+		end
+
+		if matches then
 			return
 		end
 
@@ -475,8 +384,17 @@ table.insert(Private.LoginFnQueue, function()
 			return
 		end
 
+		-- The script event is created while it still resolves to the indeterminate track, where no
+		-- frame is acquired for it. Keeping the parked icon up until it has actually moved onto a
+		-- visible track is what stops a gap where neither display is drawn.
 		if currentPhase == Phase.Timeline then
-			ReleaseParkedIconAfterHandoff()
+			if
+				parkedIcon ~= nil
+				and parkedIcon:IsShown()
+				and C_EncounterTimeline.GetEventTrack(scriptEventId) ~= Enum.EncounterTimelineTrack.Indeterminate
+			then
+				parkedIcon:Hide()
+			end
 
 			return
 		end
@@ -501,20 +419,6 @@ table.insert(Private.LoginFnQueue, function()
 		end
 	end
 
-	---@param remainingSeconds number
-	---@param senderName string?
-	local function BeginBreak(remainingSeconds, senderName)
-		TearDown(true)
-
-		breakEndTime = GetTime() + remainingSeconds
-		breakSender = senderName
-
-		InstallTimelineHooks()
-		SelectPhase(remainingSeconds)
-
-		updateTicker = C_Timer.NewTicker(0.1, OnUpdateTick)
-	end
-
 	---@param seconds number?
 	---@param senderName string?
 	local function StartBreak(seconds, senderName)
@@ -522,8 +426,7 @@ table.insert(Private.LoginFnQueue, function()
 			return
 		end
 
-		-- Zero is BigWigs' cancel, and needs the same teardown as a start: stop whichever phase is
-		-- live and drop the saved variable so a reload does not resurrect the break.
+		-- Zero is BigWigs' cancel: tear down whichever phase is live.
 		if seconds == 0 then
 			TearDown(true)
 
@@ -544,71 +447,57 @@ table.insert(Private.LoginFnQueue, function()
 
 		lastStartTime = now
 
+		TearDown(true)
+
 		-- The same bounds BigWigs' own StartBreak clamps to.
-		BeginBreak(Clamp(seconds, 60, 3600), senderName)
+		local remainingSeconds = Clamp(seconds, 60, 3600)
+
+		breakEndTime = GetTime() + remainingSeconds
+		breakSender = senderName
+
+		SelectPhase(remainingSeconds)
+
+		updateTicker = C_Timer.NewTicker(0.1, OnUpdateTick)
 	end
 
 	-------------------------------------------------------------------------------
 	-- Ingest
 
-	-- The DBM body carries <name>-<RealmWithoutSpacesOrHyphens>, which does not round-trip to a
-	-- resolvable unit cross-realm. The event's own sender argument is the authoritative name-realm,
-	-- so rank is checked against that and the body name is never used.
-	---@param senderName string
-	---@return boolean
-	local function IsSenderPermitted(senderName)
-		if not IsInGroup() then
-			return true
-		end
-
-		return UnitIsGroupLeader(senderName) or UnitIsGroupAssistant(senderName)
-	end
-
-	---@param message string
-	---@param senderName string
-	local function HandleBigWigsMessage(message, senderName)
-		local messagePrefix, subMessage, seconds = strsplit("^", message)
-
-		if messagePrefix ~= "P" or subMessage ~= "Break" then
-			return
-		end
-
-		if not IsSenderPermitted(senderName) then
-			return
-		end
-
-		StartBreak(tonumber(seconds), Ambiguate(senderName, "short"))
-	end
-
-	---@param message string
-	---@param senderName string
-	local function HandleDeadlyBossModsMessage(message, senderName)
-		local _, _, subPrefix, seconds = strsplit("\t", message)
-
-		if subPrefix ~= "BT" then
-			return
-		end
-
-		if not IsSenderPermitted(senderName) then
-			return
-		end
-
-		StartBreak(tonumber(seconds), Ambiguate(senderName, "short"))
-	end
-
 	eventFrame:SetScript("OnEvent", function(_, event, ...)
-		if event == "CHAT_MSG_ADDON" then
-			local messagePrefix, message, _, senderName = ...
-
-			if messagePrefix == "BigWigs" then
-				HandleBigWigsMessage(message, senderName)
-			elseif messagePrefix == "D5" then
-				HandleDeadlyBossModsMessage(message, senderName)
-			end
+		if event ~= "CHAT_MSG_ADDON" then
+			RefreshDisplay()
 
 			return
 		end
 
-		RefreshDisplay()
+		local addonPrefix, message, _, senderName = ...
+		local seconds
+
+		if addonPrefix == "BigWigs" then
+			local bodyPrefix, subMessage, breakSeconds = strsplit("^", message)
+
+			if bodyPrefix == "P" and subMessage == "Break" then
+				seconds = breakSeconds
+			end
+		elseif addonPrefix == "D5" then
+			local _, _, subPrefix, breakSeconds = strsplit("\t", message)
+
+			if subPrefix == "BT" then
+				seconds = breakSeconds
+			end
+		end
+
+		if seconds == nil then
+			return
+		end
+
+		-- The DBM body carries <name>-<RealmWithoutSpacesOrHyphens>, which does not round-trip to a
+		-- resolvable unit cross-realm. The event's own sender argument is the authoritative
+		-- name-realm, so rank is checked against that and the body name is never used.
+		if IsInGroup() and not (UnitIsGroupLeader(senderName) or UnitIsGroupAssistant(senderName)) then
+			return
+		end
+
+		StartBreak(tonumber(seconds), Ambiguate(senderName, "short"))
 	end)
 end)
