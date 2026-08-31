@@ -1,0 +1,94 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<!-- Geometry, atlases and mask insets are copied from EncounterTimelineEventIconTemplate
+	     (Blizzard_EncounterTimeline/EncounterTimelineTemplates.xml) so the parked icon is
+	     indistinguishable from the script event it hands off to. Inheriting their template directly
+	     would drag in EncounterTimelineEventIconMixin and its overlay state machine, none of which
+	     applies to a frame that is never driven by the timeline's data provider. -->
+	<Frame name="XephUIBreakTimerIconTemplate" virtual="true">
+		<Size x="35" y="35"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="IconTexture" texelSnappingBias="0.0" snapToPixelGrid="false" setAllPoints="true"/>
+				<MaskTexture parentKey="IconMask" texelSnappingBias="0.0" snapToPixelGrid="false" atlas="UI-HUD-CoolDownManager-Mask">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="-1"/>
+						<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="IconTexture"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="NormalOverlay" texelSnappingBias="0.0" snapToPixelGrid="false" atlas="UI-HUD-CoolDownManager-IconOverlay">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-7" y="6"/>
+						<Anchor point="BOTTOMRIGHT" x="7" y="-7"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<!-- Mirrors EncounterTimelineTrackEventTemplate: same 35x35 extent, same centred icon container,
+	     same countdown cooldown anchored over it. The event frame's own points are managed from Lua
+	     because the timeline anchors event frames by their centre to the track view's start point. -->
+	<Frame name="XephUIBreakTimerParkedIconTemplate" virtual="true" hidden="true">
+		<Size x="35" y="35"/>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="NameText" inherits="SystemFont_Shadow_Med3" hidden="true" wordwrap="false" nonspacewrap="false" justifyH="RIGHT">
+					<Size x="250"/>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="IconContainer" inherits="XephUIBreakTimerIconTemplate">
+				<Anchors>
+					<Anchor point="CENTER"/>
+				</Anchors>
+			</Frame>
+			<Cooldown parentKey="Countdown" drawBling="false" drawEdge="false" drawSwipe="false" hideCountdownNumbers="false" minimumCountdownDuration="0">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.IconContainer"/>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.IconContainer"/>
+				</Anchors>
+			</Cooldown>
+		</Frames>
+	</Frame>
+
+	<!-- Shown instead of the parked icon whenever the timeline cannot be replicated: the feature is
+	     disabled, the active view is not the track view, or the computed layout disagrees with
+	     Blizzard's live one. -->
+	<Frame name="XephUIBreakTimerFallbackTemplate" virtual="true" hidden="true" frameStrata="MEDIUM" enableMouse="true" movable="true" clampedToScreen="true">
+		<Size x="220" y="44"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" setAllPoints="true">
+					<Color r="0" g="0" b="0" a="0.55"/>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<!-- Offset past the icon by hand rather than anchoring to it: Layers are resolved
+				     before Frames, so the icon container does not exist yet at this point. -->
+				<FontString parentKey="NameText" inherits="GameFontNormal" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="LEFT" x="61" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="TimeText" inherits="GameFontHighlightLarge" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="RIGHT" x="-12" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="IconContainer" inherits="XephUIBreakTimerIconTemplate">
+				<Anchors>
+					<Anchor point="LEFT" x="14" y="0"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame>
+</Ui>
