@@ -540,8 +540,8 @@ table.insert(Private.LoginFnQueue, function()
 
 		local now = GetTime()
 
-		-- The same break arrives twice whenever BigWigs is loaded: once through its own callback and
-		-- once on the wire. BigWigs throttles its own StartBreak identically.
+		-- A single /break puts both wire formats on the air so that BigWigs and DBM users alike see
+		-- it, so every break arrives here twice. BigWigs throttles its own StartBreak identically.
 		if now - lastStartTime < START_THROTTLE_SECONDS then
 			return
 		end
@@ -599,13 +599,6 @@ table.insert(Private.LoginFnQueue, function()
 		StartBreak(tonumber(seconds), Ambiguate(senderName, "short"))
 	end
 
-	C_ChatInfo.RegisterAddonMessagePrefix("BigWigs")
-	C_ChatInfo.RegisterAddonMessagePrefix("D5")
-
-	eventFrame:RegisterEvent("CHAT_MSG_ADDON")
-	eventFrame:RegisterEvent("ENCOUNTER_TIMELINE_VIEW_ACTIVATED")
-	eventFrame:RegisterEvent("ENCOUNTER_TIMELINE_VIEW_DEACTIVATED")
-
 	eventFrame:SetScript("OnEvent", function(_, event, ...)
 		if event == "CHAT_MSG_ADDON" then
 			local messagePrefix, message, _, senderName = ...
@@ -622,18 +615,22 @@ table.insert(Private.LoginFnQueue, function()
 		RefreshDisplay()
 	end)
 
+	-- Deferred to login because neither boss mod is guaranteed to have loaded at our own
+	-- ADDON_LOADED, and both are the reason not to run.
 	EventUtil.ContinueOnPlayerLogin(function()
-		-- A solo /break dispatches locally and puts nothing on the wire, so the addon message path
-		-- alone never sees a break the player started themselves. The loader and core share one
-		-- callback registry, so registering directly against it is supported.
-		if BigWigsLoader ~= nil and BigWigsLoader.RegisterMessage ~= nil then
-			BigWigsLoader.RegisterMessage(eventFrame, "BigWigs_StartBreak", function(_, _, seconds, nick)
-				StartBreak(seconds, nick)
-			end)
-
-			BigWigsLoader.RegisterMessage(eventFrame, "BigWigs_StopBreak", function()
-				TearDown(true)
-			end)
+		-- BigWigs and DBM each render their own break display. Competing with that means double
+		-- bars, so this module covers only the case where neither is installed. That also means the
+		-- wire is the sole ingest path: a solo /break dispatches locally inside the boss mod and
+		-- sends nothing, but without a boss mod there is no /break to issue in the first place.
+		if C_AddOns.IsAddOnLoaded("BigWigs") or C_AddOns.IsAddOnLoaded("DBM-Core") then
+			return
 		end
+
+		C_ChatInfo.RegisterAddonMessagePrefix("BigWigs")
+		C_ChatInfo.RegisterAddonMessagePrefix("D5")
+
+		eventFrame:RegisterEvent("CHAT_MSG_ADDON")
+		eventFrame:RegisterEvent("ENCOUNTER_TIMELINE_VIEW_ACTIVATED")
+		eventFrame:RegisterEvent("ENCOUNTER_TIMELINE_VIEW_DEACTIVATED")
 	end)
 end)
