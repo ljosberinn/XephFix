@@ -205,21 +205,6 @@ table.insert(Private.LoginFnQueue, function()
 	-------------------------------------------------------------------------------
 	-- Parked icon
 
-	---@param region Region
-	---@param point FramePoint
-	---@param relativeTo Region
-	---@param relativePoint FramePoint
-	---@param offsetX number
-	---@param offsetY number
-	---@param isFlipped boolean
-	local function SetPointWithHorizontalFlip(region, point, relativeTo, relativePoint, offsetX, offsetY, isFlipped)
-		if isFlipped then
-			AnchorUtil.SetMirroredPointAlongHorizontalAxis(region, point, relativeTo, relativePoint, offsetX, offsetY)
-		else
-			region:SetPoint(point, relativeTo, relativePoint, offsetX, offsetY)
-		end
-	end
-
 	---@return Frame
 	local function AcquireParkedIcon()
 		if parkedIcon == nil then
@@ -230,50 +215,7 @@ table.insert(Private.LoginFnQueue, function()
 		return parkedIcon
 	end
 
-	-- Overall size and icon size are two independent scales on Blizzard's side: OverallSize is a
-	-- SetScale on the timeline frame itself, which the parked icon inherits by being parented into
-	-- it, while IconSize only scales the icon container and countdown of each event frame.
-	local function ApplyParkedIconScale()
-		local trackView = EncounterTimeline:GetTrackView()
-		local iconScale = trackView:GetIconScale()
-
-		parkedIcon.IconContainer:SetScale(iconScale)
-		parkedIcon.Countdown:SetScale(iconScale)
-	end
-
-	local function ApplyParkedIconText()
-		local trackView = EncounterTimeline:GetTrackView()
-		local nameText = parkedIcon.NameText
-
-		nameText:ClearAllPoints()
-		nameText:SetShown(trackView:ShouldShowText())
-
-		if not nameText:IsShown() then
-			return
-		end
-
-		nameText:SetText(BREAK_LABEL)
-		SetPointWithHorizontalFlip(
-			nameText,
-			"RIGHT",
-			parkedIcon,
-			"LEFT",
-			-10 * trackView:GetIconScale(),
-			0,
-			trackView:ShouldFlipHorizontally()
-		)
-		nameText:SetJustifyH(trackView:ShouldFlipHorizontally() and "LEFT" or "RIGHT")
-	end
-
 	local function ApplyParkedIconCountdown()
-		local trackView = EncounterTimeline:GetTrackView()
-
-		if not trackView:ShouldShowCountdown() then
-			parkedIcon.Countdown:Clear()
-
-			return
-		end
-
 		parkedIcon.Countdown:SetCooldownDuration(breakEndTime - GetTime())
 		parkedIcon.Countdown:Show()
 	end
@@ -398,8 +340,6 @@ table.insert(Private.LoginFnQueue, function()
 		EncounterTimeline:SetExplicitlyShown(true)
 
 		PositionParkedIcon()
-		ApplyParkedIconScale()
-		ApplyParkedIconText()
 		ApplyParkedIconCountdown()
 		parkedIcon:Show()
 
@@ -442,28 +382,10 @@ table.insert(Private.LoginFnQueue, function()
 			RefreshDisplay()
 		end)
 
+		-- A view type change can take the track view out from under the parked icon entirely.
 		hooksecurefunc(EncounterTimeline, "UpdateSystemSettingViewType", function()
 			RefreshDisplay()
 		end)
-
-		-- Orientation, icon direction and overall size all route through either the layout hook above
-		-- or plain inheritance from the timeline frame. These four do not.
-		for _, settingUpdater in ipairs({
-			"UpdateSystemSettingIconSize",
-			"UpdateSystemSettingShowSpellName",
-			"UpdateSystemSettingShowTimer",
-			"UpdateSystemSettingFlipHorizontally",
-		}) do
-			hooksecurefunc(EncounterTimeline, settingUpdater, function()
-				if currentPhase ~= Phase.Parked then
-					return
-				end
-
-				ApplyParkedIconScale()
-				ApplyParkedIconText()
-				ApplyParkedIconCountdown()
-			end)
-		end
 	end
 
 	-------------------------------------------------------------------------------

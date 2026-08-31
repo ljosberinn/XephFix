@@ -35,13 +35,6 @@
 	     because the timeline anchors event frames by their centre to the track view's start point. -->
 	<Frame name="XephUIBreakTimerParkedIconTemplate" virtual="true" hidden="true">
 		<Size x="35" y="35"/>
-		<Layers>
-			<Layer level="OVERLAY">
-				<FontString parentKey="NameText" inherits="SystemFont_Shadow_Med3" hidden="true" wordwrap="false" nonspacewrap="false" justifyH="RIGHT">
-					<Size x="250"/>
-				</FontString>
-			</Layer>
-		</Layers>
 		<Frames>
 			<Frame parentKey="IconContainer" inherits="XephUIBreakTimerIconTemplate">
 				<Anchors>
