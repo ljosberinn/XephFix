@@ -5,31 +5,25 @@ table.insert(Private.LoginFnQueue, function()
 		return
 	end
 
+	-- Both render their own break display, and competing with it means double bars. Bailing also
+	-- makes the wire the sole ingest path, which is fine: a solo /break dispatches locally inside the
+	-- boss mod and sends nothing, but without a boss mod there is no /break to issue.
+	-- ## OptionalDeps in the TOC is what makes this readable this early.
+	if C_AddOns.IsAddOnLoaded("BigWigs") or C_AddOns.IsAddOnLoaded("DBM-Core") then
+		return
+	end
+
+	C_ChatInfo.RegisterAddonMessagePrefix("BigWigs")
+	C_ChatInfo.RegisterAddonMessagePrefix("D5")
+
 	local BREAK_ICON_FILE_ID = 134062 -- inv_misc_fork&knife, the icon BigWigs' own break bar uses
 	local BREAK_LABEL = "Break"
-	local MINIMUM_BREAK_SECONDS = 60
-	local MAXIMUM_BREAK_SECONDS = 3600
-	local START_THROTTLE_SECONDS = 0.5
-	local UPDATE_INTERVAL = 0.1
 	local OFFSET_TOLERANCE = 0.01
 
 	-- Long track alpha from EncounterTimelineTrackAlphaCurve, and the frame level bump a Medium
 	-- severity event gets from EncounterTimelineSeverityFrameLevelCurve.
 	local LONG_TRACK_ALPHA = 0.6
 	local MEDIUM_SEVERITY_FRAME_LEVEL_OFFSET = 20
-
-	-- Layout inputs the C track list does not carry. EncounterTimelineTrackViewMixin:OnTracksUpdated
-	-- supplies all three; the medium extent is a bare literal in CalculateMediumTrackExtent and the
-	-- queued padding is hardcoded, so neither is readable while the timeline is cold.
-	local MEDIUM_TRACK_EXTENT = 55
-	local QUEUED_TRACK_PADDING_START = 10
-	local LINE_START_ATLAS = "combattimeline-line-left"
-	local LINE_END_ATLAS = "combattimeline-line-right"
-
-	-- A break is the furthest-out thing on screen, so it is assumed to be alone on the long track.
-	-- Concurrent long-track events would share these coordinates; the timeline offers no lever to
-	-- pin an event to a slot, so there is nothing to arbitrate with.
-	local PARKED_SORT_INDEX = 1
 
 	local Phase = {
 		Parked = 1,
@@ -50,6 +44,9 @@ table.insert(Private.LoginFnQueue, function()
 	local hasInstalledTimelineHooks = false
 
 	local eventFrame = CreateFrame("Frame")
+	eventFrame:RegisterEvent("CHAT_MSG_ADDON")
+	eventFrame:RegisterEvent("ENCOUNTER_TIMELINE_VIEW_ACTIVATED")
+	eventFrame:RegisterEvent("ENCOUNTER_TIMELINE_VIEW_DEACTIVATED")
 
 	-------------------------------------------------------------------------------
 	-- Track layout replication
@@ -63,7 +60,7 @@ table.insert(Private.LoginFnQueue, function()
 		local trackView = EncounterTimeline:GetTrackView()
 		local sortedEventExtent = trackView:GetSortedEventExtent()
 		local paddingStart, paddingEnd = trackView:GetPrimaryAxisPadding()
-		local shortTrackExtent = GetAtlasSize(LINE_START_ATLAS) + GetAtlasSize(LINE_END_ATLAS)
+		local shortTrackExtent = GetAtlasSize("combattimeline-line-left") + GetAtlasSize("combattimeline-line-right")
 		local trackList = C_EncounterTimeline.GetTrackList()
 		local offsetsByTrack = {}
 		local offset = paddingStart or layoutDefaults.PrimaryAxisStartPadding
@@ -74,11 +71,10 @@ table.insert(Private.LoginFnQueue, function()
 			local track = trackInfo.id
 
 			if trackInfo.type == Enum.EncounterTimelineTrackType.Sorted then
-				local trackPaddingStart = track == Enum.EncounterTimelineTrack.Queued and QUEUED_TRACK_PADDING_START
-					or 0
 				local maximumEventCount = trackInfo.maximumEventCount or math.huge
 
-				offset = offset + trackPaddingStart
+				-- Per-track padding is not part of the C track list; OnTracksUpdated hardcodes this one.
+				offset = offset + (track == Enum.EncounterTimelineTrack.Queued and 10 or 0)
 
 				offsetsByTrack[track] = {
 					offsetStart = offset,
@@ -90,11 +86,10 @@ table.insert(Private.LoginFnQueue, function()
 				offset = offset + maximumEventCount * sortedEventExtent
 				offsetsByTrack[track].offsetEnd = offset
 			elseif trackInfo.type == Enum.EncounterTimelineTrackType.Linear then
-				local extent = track == Enum.EncounterTimelineTrack.Medium and MEDIUM_TRACK_EXTENT or shortTrackExtent
-
 				offsetsByTrack[track] = { offsetStart = offset }
 
-				offset = offset + extent
+				-- Likewise the extents, and CalculateMediumTrackExtent is a bare literal on their side.
+				offset = offset + (track == Enum.EncounterTimelineTrack.Medium and 55 or shortTrackExtent)
 				offsetsByTrack[track].offsetEnd = offset
 			end
 		end
@@ -182,8 +177,7 @@ table.insert(Private.LoginFnQueue, function()
 			return false
 		end
 
-		local offsetsByTrack = ComputeTrackLayout()
-		local longOffsets = offsetsByTrack[Enum.EncounterTimelineTrack.Long]
+		local longOffsets = ComputeTrackLayout()[Enum.EncounterTimelineTrack.Long]
 
 		return longOffsets ~= nil and longOffsets.maximumEventCount ~= math.huge
 	end
@@ -213,8 +207,6 @@ table.insert(Private.LoginFnQueue, function()
 
 	local function PositionParkedIcon()
 		local trackView = EncounterTimeline:GetTrackView()
-		local offsetsByTrack = ComputeTrackLayout()
-		local longOffsets = offsetsByTrack[Enum.EncounterTimelineTrack.Long]
 		local orientation = trackView:GetTrackOrientation()
 		local frameLevel = trackView:GetFrameLevel()
 
@@ -224,9 +216,14 @@ table.insert(Private.LoginFnQueue, function()
 		parkedIcon:SetParent(trackView)
 		parkedIcon:ClearAllPoints()
 		parkedIcon:SetPoint("CENTER", trackView, orientation:GetStartPoint(), 0, 0)
+		-- A break is the furthest-out thing on screen, so it is assumed to be alone on the long track.
+		-- Concurrent long-track events would share these coordinates; the timeline offers no lever to
+		-- pin an event to a slot, so there is nothing to arbitrate with.
+		local parkedSortIndex = 1
+
 		parkedIcon:SetPointsOffset(
 			orientation:GetOrientedOffsets(
-				ComputeSortedEventEntryOffset(longOffsets, PARKED_SORT_INDEX),
+				ComputeSortedEventEntryOffset(ComputeTrackLayout()[Enum.EncounterTimelineTrack.Long], parkedSortIndex),
 				trackView:GetCrossAxisOffset()
 			)
 		)
@@ -447,8 +444,7 @@ table.insert(Private.LoginFnQueue, function()
 			return
 		end
 
-		local offsetsByTrack, primaryAxisExtent = ComputeTrackLayout()
-		local validationResult = ValidateComputedLayout(offsetsByTrack, primaryAxisExtent)
+		local validationResult = ValidateComputedLayout(ComputeTrackLayout())
 
 		if validationResult == nil then
 			return
@@ -516,7 +512,7 @@ table.insert(Private.LoginFnQueue, function()
 		InstallTimelineHooks()
 		SelectPhase(remainingSeconds)
 
-		updateTicker = C_Timer.NewTicker(UPDATE_INTERVAL, OnUpdateTick)
+		updateTicker = C_Timer.NewTicker(0.1, OnUpdateTick)
 	end
 
 	---@param seconds number?
@@ -542,13 +538,14 @@ table.insert(Private.LoginFnQueue, function()
 
 		-- A single /break puts both wire formats on the air so that BigWigs and DBM users alike see
 		-- it, so every break arrives here twice. BigWigs throttles its own StartBreak identically.
-		if now - lastStartTime < START_THROTTLE_SECONDS then
+		if now - lastStartTime < 0.5 then
 			return
 		end
 
 		lastStartTime = now
 
-		BeginBreak(Clamp(seconds, MINIMUM_BREAK_SECONDS, MAXIMUM_BREAK_SECONDS), senderName)
+		-- The same bounds BigWigs' own StartBreak clamps to.
+		BeginBreak(Clamp(seconds, 60, 3600), senderName)
 	end
 
 	-------------------------------------------------------------------------------
@@ -613,24 +610,5 @@ table.insert(Private.LoginFnQueue, function()
 		end
 
 		RefreshDisplay()
-	end)
-
-	-- Deferred to login because neither boss mod is guaranteed to have loaded at our own
-	-- ADDON_LOADED, and both are the reason not to run.
-	EventUtil.ContinueOnPlayerLogin(function()
-		-- BigWigs and DBM each render their own break display. Competing with that means double
-		-- bars, so this module covers only the case where neither is installed. That also means the
-		-- wire is the sole ingest path: a solo /break dispatches locally inside the boss mod and
-		-- sends nothing, but without a boss mod there is no /break to issue in the first place.
-		if C_AddOns.IsAddOnLoaded("BigWigs") or C_AddOns.IsAddOnLoaded("DBM-Core") then
-			return
-		end
-
-		C_ChatInfo.RegisterAddonMessagePrefix("BigWigs")
-		C_ChatInfo.RegisterAddonMessagePrefix("D5")
-
-		eventFrame:RegisterEvent("CHAT_MSG_ADDON")
-		eventFrame:RegisterEvent("ENCOUNTER_TIMELINE_VIEW_ACTIVATED")
-		eventFrame:RegisterEvent("ENCOUNTER_TIMELINE_VIEW_DEACTIVATED")
 	end)
 end)

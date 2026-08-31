@@ -4,6 +4,7 @@
 ## Author: Xephyris-Blackrock-EU
 ## Version: @project-version@
 ## SavedVariables: XephUISaved
+## OptionalDeps: BigWigs, DBM-Core
 
 ## X-Curse-Project-ID: 1554857
 
