@@ -51,15 +51,6 @@ table.insert(Private.LoginFnQueue, function()
 
 	local eventFrame = CreateFrame("Frame")
 
-	---@return table
-	local function GetDatabase()
-		local database = XephUISaved.BreakTimerDB or {}
-
-		XephUISaved.BreakTimerDB = database
-
-		return database
-	end
-
 	-------------------------------------------------------------------------------
 	-- Track layout replication
 
@@ -250,17 +241,6 @@ table.insert(Private.LoginFnQueue, function()
 	-------------------------------------------------------------------------------
 	-- Fallback display
 
-	local function SaveFallbackPosition()
-		local point, _, relativePoint, offsetX, offsetY = fallbackFrame:GetPoint(1)
-
-		GetDatabase().FallbackPoint = {
-			point = point,
-			relativePoint = relativePoint,
-			offsetX = offsetX,
-			offsetY = offsetY,
-		}
-	end
-
 	---@return Frame
 	local function AcquireFallbackFrame()
 		if fallbackFrame ~= nil then
@@ -269,29 +249,7 @@ table.insert(Private.LoginFnQueue, function()
 
 		fallbackFrame = CreateFrame("Frame", nil, UIParent, "XephUIBreakTimerFallbackTemplate")
 		fallbackFrame.IconContainer.IconTexture:SetTexture(BREAK_ICON_FILE_ID)
-
-		local savedPoint = GetDatabase().FallbackPoint
-
-		if savedPoint then
-			fallbackFrame:SetPoint(
-				savedPoint.point,
-				UIParent,
-				savedPoint.relativePoint,
-				savedPoint.offsetX,
-				savedPoint.offsetY
-			)
-		else
-			fallbackFrame:SetPoint("TOP", UIParent, "TOP", 0, -220)
-		end
-
-		fallbackFrame:RegisterForDrag("LeftButton")
-		fallbackFrame:SetScript("OnDragStart", function(self)
-			self:StartMoving()
-		end)
-		fallbackFrame:SetScript("OnDragStop", function(self)
-			self:StopMovingOrSizing()
-			SaveFallbackPosition()
-		end)
+		fallbackFrame:SetPoint("TOP", UIParent, "TOP", 0, -220)
 
 		return fallbackFrame
 	end
@@ -464,8 +422,6 @@ table.insert(Private.LoginFnQueue, function()
 		updateTicker = nil
 	end
 
-	-- Tears the display down without touching the saved variable, so that restarting or resuming a
-	-- break can reuse it. Callers that actually end a break clear the saved break themselves.
 	---@param shouldCancelScriptEvent boolean
 	local function TearDown(shouldCancelScriptEvent)
 		StopUpdating()
@@ -484,13 +440,6 @@ table.insert(Private.LoginFnQueue, function()
 		breakSender = nil
 		scriptEventId = nil
 		hasValidatedLayout = false
-	end
-
-	---@param shouldCancelScriptEvent boolean
-	local function EndBreak(shouldCancelScriptEvent)
-		TearDown(shouldCancelScriptEvent)
-
-		GetDatabase().ActiveBreak = nil
 	end
 
 	local function ValidateParkedLayout()
@@ -525,7 +474,7 @@ table.insert(Private.LoginFnQueue, function()
 		if remainingSeconds <= 0 then
 			-- A handed-off event runs its own finish animation, so let it play out rather than
 			-- cancelling it.
-			EndBreak(false)
+			TearDown(false)
 
 			return
 		end
@@ -580,7 +529,7 @@ table.insert(Private.LoginFnQueue, function()
 		-- Zero is BigWigs' cancel, and needs the same teardown as a start: stop whichever phase is
 		-- live and drop the saved variable so a reload does not resurrect the break.
 		if seconds == 0 then
-			EndBreak(true)
+			TearDown(true)
 
 			return
 		end
@@ -599,15 +548,7 @@ table.insert(Private.LoginFnQueue, function()
 
 		lastStartTime = now
 
-		local clampedSeconds = Clamp(seconds, MINIMUM_BREAK_SECONDS, MAXIMUM_BREAK_SECONDS)
-
-		BeginBreak(clampedSeconds, senderName)
-
-		GetDatabase().ActiveBreak = {
-			startedAt = time(),
-			seconds = clampedSeconds,
-			sender = senderName,
-		}
+		BeginBreak(Clamp(seconds, MINIMUM_BREAK_SECONDS, MAXIMUM_BREAK_SECONDS), senderName)
 	end
 
 	-------------------------------------------------------------------------------
@@ -691,24 +632,8 @@ table.insert(Private.LoginFnQueue, function()
 			end)
 
 			BigWigsLoader.RegisterMessage(eventFrame, "BigWigs_StopBreak", function()
-				EndBreak(true)
+				TearDown(true)
 			end)
 		end
-
-		local activeBreak = GetDatabase().ActiveBreak
-
-		if activeBreak == nil then
-			return
-		end
-
-		local remainingSeconds = activeBreak.seconds - (time() - activeBreak.startedAt)
-
-		if remainingSeconds <= 0 then
-			GetDatabase().ActiveBreak = nil
-
-			return
-		end
-
-		BeginBreak(remainingSeconds, activeBreak.sender)
 	end)
 end)
