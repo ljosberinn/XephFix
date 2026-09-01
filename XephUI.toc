@@ -13,6 +13,7 @@ Libs/LibKeystone/LibKeystone/LibKeystone.lua
 Init.lua
 
 Modules/AddonManagement.lua
+Modules/ApplicantListVisibility.lua
 Modules/AutoDialogueInteraction.lua
 Modules/AutoGreet.lua
 Modules/AutoKeystone.lua

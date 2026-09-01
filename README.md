@@ -13,6 +13,8 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
 ## Modules
 
 - AddonManagement
+- ApplicantListVisibility
+  - reveals the group finder applicant list to non-leaders by hiding the cover
 - AutoDialogueInteraction
   - automatically selects specific gossip options in dungeons, delves and scenarios, mirroring LittleWigs' autotalk list
   - skips single-option dialogue while alt is held
