@@ -27,6 +27,10 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - automatically confirms role check popups based on your current specialization
 - AutoSellJunk
   - automatically sells junk at merchants
+- BreakTimer
+  - shows breaks announced by other players' BigWigs or DBM on the default encounter timeline
+  - falls back to a standalone bar when the timeline is unavailable
+  - does nothing if you have BigWigs or DBM yourself, since they draw their own break bar
 - BuffWarningPatch
   - removes the stupid alpha change for expiring auras
 - CharacterSheetImprovements
