@@ -14,7 +14,8 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
 
 - AddonManagement
 - AutoDialogueInteraction
-  - automatically selects specific gossip options in certain dungeons (Pit of Saron, Algeth'ar Academy, etc.)
+  - automatically selects specific gossip options in dungeons, delves and scenarios, mirroring LittleWigs' autotalk list
+  - skips single-option dialogue while alt is held
 - AutoGreet
   - the equivalent of /p hi
 - AutoKeystone
@@ -35,6 +36,8 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - shows raw combat rating alongside the percentage for secondary stats on the character sheet
 - ChatItemEnhancements
   - prepends item icons to item links in chat and appends slot type and item level to the label
+- CinematicBlocker
+  - skips the King's Rest cinematic before Dazar, every time rather than only after the first viewing
 - CleanNamesInInstances
   - port of https://wago.io/M13VlqtM-
 - CooldownManagerMountOpacity
