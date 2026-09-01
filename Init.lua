@@ -13,6 +13,7 @@ EventUtil.ContinueOnAddOnLoaded(addonName, function()
 		AutoRepair = true,
 		AutoRoleSelect = true,
 		AutoSellJunk = true,
+		BreakTimer = true,
 		BuffWarningPatch = true,
 		CharacterSheetImprovements = true,
 		CharacterStatsFormatting = true,

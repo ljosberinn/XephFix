@@ -4,6 +4,7 @@
 ## Author: Xephyris-Blackrock-EU
 ## Version: @project-version@
 ## SavedVariables: XephUISaved
+## OptionalDeps: BigWigs, DBM-Core
 
 ## X-Curse-Project-ID: 1554857
 
@@ -21,6 +22,7 @@ Modules/AutoQuest.lua
 Modules/AutoRepair.lua
 Modules/AutoRoleSelect.lua
 Modules/AutoSellJunk.lua
+Modules/BreakTimer.lua
 Modules/BuffWarningPatch.lua
 Modules/CharacterSheetImprovements.lua
 Modules/CharacterStatsFormatting.lua
@@ -49,3 +51,4 @@ Modules/TooltipIDs.lua
 Modules/UIScale.lua
 Modules/UnitTooltipEnhancements.lua
 Templates/AddonManagement.xml
+Templates/BreakTimer.xml
