@@ -155,6 +155,9 @@ table.insert(Private.LoginFnQueue, function()
 		-- Maisara Caverns
 		[137387] = false, -- cooking stew
 		[137428] = false, -- ritual cauldron, dip your weapon
+		-- Murder Row
+		[131567] = false, -- Belath Dawnblade, I'm ready for my disguise
+		[131502] = false, -- Selenar Sunshy, clock in
 		-- Nexus-Point Xenas
 		[137133] = false, -- tripwire
 		-- The War Within delves. Disabled by default,
