@@ -16,6 +16,7 @@ EventUtil.ContinueOnAddOnLoaded(addonName, function()
 		CharacterSheetImprovements = true,
 		CharacterStatsFormatting = true,
 		ChatItemEnhancements = true,
+		CinematicBlocker = true,
 		CleanNamesInInstances = true,
 		CooldownManagerMountOpacity = true,
 		CooldownManagerTweaks = true,

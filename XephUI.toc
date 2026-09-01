@@ -24,6 +24,7 @@ Modules/BuffWarningPatch.lua
 Modules/CharacterSheetImprovements.lua
 Modules/CharacterStatsFormatting.lua
 Modules/ChatItemEnhancements.lua
+Modules/CinematicBlocker.lua
 Modules/CleanNamesInInstances.lua
 Modules/CooldownManagerMountOpacity.lua
 Modules/CVars.lua
