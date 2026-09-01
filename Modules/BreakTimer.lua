@@ -168,38 +168,36 @@ table.insert(Private.LoginFnQueue, function()
 		-- needs. This writes a field on Blizzard's frame from our tainted stack.
 		EncounterTimeline:SetExplicitlyShown(true)
 
-		do
-			local trackView = EncounterTimeline:GetTrackView()
-			local orientation = trackView:GetTrackOrientation()
-			local frameLevel = trackView:GetFrameLevel()
+		local trackView = EncounterTimeline:GetTrackView()
+		local orientation = trackView:GetTrackOrientation()
+		local frameLevel = trackView:GetFrameLevel()
 
-			-- StartPrimaryAxisSortedTranslation synthesizes an entry offset one slot further from the
-			-- medium end than the resting slot whenever a frame enters a sorted track while hidden,
-			-- then slides in over SortedTrackTranslationDuration. A frame is never acquired while an
-			-- event sits in the indeterminate track, so every arrival into the long track is such an
-			-- initial entry. Parking on the entry offset rather than the resting one is what stops
-			-- the handoff popping backwards.
-			--
-			-- Slot 2 below is therefore the entry offset for slot 1, which is where the break comes to
-			-- rest. It is assumed to be alone on the long track, which it is: a break is the
-			-- furthest-out thing on screen. Concurrent long track events would share these
-			-- coordinates, and the timeline offers no lever to pin an event to a slot.
-			local entryOffset = ComputeSortedEventOffset(ComputeTrackLayout()[Enum.EncounterTimelineTrack.Long], 2)
+		-- StartPrimaryAxisSortedTranslation synthesizes an entry offset one slot further from the
+		-- medium end than the resting slot whenever a frame enters a sorted track while hidden,
+		-- then slides in over SortedTrackTranslationDuration. A frame is never acquired while an
+		-- event sits in the indeterminate track, so every arrival into the long track is such an
+		-- initial entry. Parking on the entry offset rather than the resting one is what stops
+		-- the handoff popping backwards.
+		--
+		-- Slot 2 below is therefore the entry offset for slot 1, which is where the break comes to
+		-- rest. It is assumed to be alone on the long track, which it is: a break is the
+		-- furthest-out thing on screen. Concurrent long track events would share these
+		-- coordinates, and the timeline offers no lever to pin an event to a slot.
+		local entryOffset = ComputeSortedEventOffset(ComputeTrackLayout()[Enum.EncounterTimelineTrack.Long], 2)
 
-			-- Event frames are anchored by their centre to the track view's start point, and the
-			-- offset origin is the track view rather than EncounterTimeline. The two rects coincide
-			-- today, but only the track view sizes itself from the primary axis extent.
-			parkedIcon:SetParent(trackView)
-			parkedIcon:ClearAllPoints()
-			parkedIcon:SetPoint("CENTER", trackView, orientation:GetStartPoint(), 0, 0)
-			parkedIcon:SetPointsOffset(orientation:GetOrientedOffsets(entryOffset, trackView:GetCrossAxisOffset()))
+		-- Event frames are anchored by their centre to the track view's start point, and the
+		-- offset origin is the track view rather than EncounterTimeline. The two rects coincide
+		-- today, but only the track view sizes itself from the primary axis extent.
+		parkedIcon:SetParent(trackView)
+		parkedIcon:ClearAllPoints()
+		parkedIcon:SetPoint("CENTER", trackView, orientation:GetStartPoint(), 0, 0)
+		parkedIcon:SetPointsOffset(orientation:GetOrientedOffsets(entryOffset, trackView:GetCrossAxisOffset()))
 
-			parkedIcon:SetFrameLevel(frameLevel)
-			parkedIcon.IconContainer:SetFrameLevel(frameLevel + MEDIUM_SEVERITY_FRAME_LEVEL_OFFSET)
-			parkedIcon.Countdown:SetFrameLevel(frameLevel + MEDIUM_SEVERITY_FRAME_LEVEL_OFFSET)
-			parkedIcon.IconContainer:SetAlpha(LONG_TRACK_ALPHA)
-			parkedIcon.Countdown:SetAlpha(LONG_TRACK_ALPHA)
-		end
+		parkedIcon:SetFrameLevel(frameLevel)
+		parkedIcon.IconContainer:SetFrameLevel(frameLevel + MEDIUM_SEVERITY_FRAME_LEVEL_OFFSET)
+		parkedIcon.Countdown:SetFrameLevel(frameLevel + MEDIUM_SEVERITY_FRAME_LEVEL_OFFSET)
+		parkedIcon.IconContainer:SetAlpha(LONG_TRACK_ALPHA)
+		parkedIcon.Countdown:SetAlpha(LONG_TRACK_ALPHA)
 
 		parkedIcon.Countdown:SetCooldownDuration(breakEndTime - GetTime())
 		parkedIcon.Countdown:Show()
