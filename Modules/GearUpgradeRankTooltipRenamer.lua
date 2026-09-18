@@ -49,7 +49,7 @@ table.insert(Private.LoginFnQueue, function()
 		{
 			name = "Myth",
 			minIlvl = 318,
-			maxIlvl = 335,
+			maxIlvl = 334,
 			maxUpgrade = 6,
 			color = ITEM_LEGENDARY_COLOR,
 		},
