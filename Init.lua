@@ -1,6 +1,7 @@
 local addonName, Private = ...
 
 Private.LoginFnQueue = {}
+Private.IsClassicForever = select(4, GetBuildInfo()) < 120000
 
 EventUtil.ContinueOnAddOnLoaded(addonName, function()
 	local defaults = {

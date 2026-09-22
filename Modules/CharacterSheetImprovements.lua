@@ -52,6 +52,10 @@ table.insert(Private.LoginFnQueue, function()
 	}
 
 	local function SlotIsEnchantable(slot)
+		if Private.IsClassicForever then
+			return false -- todo
+		end
+
 		return slot == Enum.InventoryType.IndexHeadType
 			or slot == Enum.InventoryType.IndexShoulderType
 			or slot == Enum.InventoryType.IndexChestType

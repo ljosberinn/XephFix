@@ -1,4 +1,4 @@
-## Interface: 120100
+## Interface: 120100, 120105, 16001
 ## Title: XephUI
 ## DefaultState: Enabled
 ## Author: Xephyris-Blackrock-EU
@@ -13,17 +13,17 @@ Libs/LibKeystone/LibKeystone/LibKeystone.lua
 Init.lua
 
 Modules/AddonManagement.lua
-Modules/ApplicantListVisibility.lua
+Modules/ApplicantListVisibility.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot]
 Modules/AutoDialogueInteraction.lua
 Modules/AutoGreet.lua
-Modules/AutoKeystone.lua
+Modules/AutoKeystone.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot]
 Modules/AutoQuest.lua
 Modules/AutoRepair.lua
-Modules/AutoRoleSelect.lua
+Modules/AutoRoleSelect.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot]
 Modules/AutoSellJunk.lua
 Modules/BuffWarningPatch.lua
 Modules/CharacterSheetImprovements.lua
-Modules/CharacterStatsFormatting.lua
+Modules/CharacterStatsFormatting.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
 Modules/ChatItemEnhancements.lua
 Modules/CinematicBlocker.lua
 Modules/CleanNamesInInstances.lua
@@ -32,19 +32,19 @@ Modules/CVars.lua
 Modules/DamageMeterToggle.lua
 Modules/DraggableFrames.lua
 Modules/EventToastBlocker.lua
-Modules/EvokerLetFly.lua
+Modules/EvokerLetFly.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
 Modules/FocusMarkerAnnouncement.lua
-Modules/GearUpgradeRankTooltipRenamer.lua
-Modules/GearUpgradeReminder.lua
-Modules/KeystoneAnnouncer.lua
-Modules/KeystoneInfo.lua
-Modules/MDTSim.lua
+Modules/GearUpgradeRankTooltipRenamer.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
+Modules/GearUpgradeReminder.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
+Modules/KeystoneAnnouncer.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
+Modules/KeystoneInfo.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
+Modules/MDTSim.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
 Modules/CooldownManagerTweaks.lua
 Modules/PlayerFrameChain.lua
 Modules/Stopwatch.lua
 Modules/TalkingHeadBlocker.lua
 Modules/TargetShield.lua
-Modules/TalentReminders.lua
+Modules/TalentReminders.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
 Modules/TooltipIDs.lua
 Modules/UIScale.lua
 Modules/UnitTooltipEnhancements.lua

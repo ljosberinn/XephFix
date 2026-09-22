@@ -6,8 +6,12 @@ table.insert(Private.LoginFnQueue, function()
 	end
 
 	-- make more frames draggable
-	---@param frameToPatch Frame
+	---@param frameToPatch Frame?
 	local function PatchFrame(frameToPatch)
+		if frameToPatch == nil then
+			return
+		end
+
 		if InCombatLockdown() then
 			return
 		end
