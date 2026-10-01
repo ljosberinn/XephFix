@@ -51,9 +51,18 @@ table.insert(Private.LoginFnQueue, function()
 		[Enum.InventoryType.IndexTabardType] = "Tabard",
 	}
 
-	local function SlotIsEnchantable(slot)
+	---@param slot number
+	---@param itemLink string
+	---@return boolean
+	local function SlotIsEnchantable(slot, itemLink)
 		if Private.IsClassicForever then
 			return false -- todo
+		end
+
+		-- shields and held-in-off-hand items are armor and can't be enchanted
+		if slot == INVSLOT_OFFHAND then
+			local classID = select(6, C_Item.GetItemInfoInstant(itemLink))
+			return classID == Enum.ItemClass.Weapon
 		end
 
 		return slot == Enum.InventoryType.IndexHeadType
@@ -150,27 +159,28 @@ table.insert(Private.LoginFnQueue, function()
 
 	local missingEnchantsLabel = "cheap fuck"
 
+	-- GetItemInfo can succeed while the link's tooltip data is still loading,
+	-- so incomplete slots are rescanned once TOOLTIP_DATA_UPDATE delivers it
+	---@type table<number, { unit: string, slot: number }>
+	local pendingTooltipData = {}
+
+	---@param unit string
 	---@param slot number
 	---@param itemLink string
 	---@param initialItemLevel number
 	---@return number, string
-	local function ParseItemLevelAndEnchant(slot, itemLink, initialItemLevel)
-		---@type GameTooltip
-		local ItemTooltip = _G["XephScanningTooltip"]
+	local function ParseItemLevelAndEnchant(unit, slot, itemLink, initialItemLevel)
+		local tooltipData = C_TooltipInfo.GetHyperlink(itemLink)
 
-		if ItemTooltip == nil then
-			ItemTooltip = CreateFrame("GameTooltip", "XephScanningTooltip", WorldFrame, "GameTooltipTemplate")
+		if tooltipData == nil then
+			return initialItemLevel, ""
 		end
 
-		-- SetOwner must be called before every SetHyperlink; omitting it causes
-		-- the tooltip to silently stop populating after certain UI events
-		ItemTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
-		ItemTooltip:SetHyperlink(itemLink)
-
 		local enchant = ""
+		local itemLevelFound = false
 
-		for i = 1, ItemTooltip:NumLines() do
-			local leftText = _G["XephScanningTooltipTextLeft" .. i]:GetText()
+		for _, line in ipairs(tooltipData.lines) do
+			local leftText = line.leftText or ""
 			local foundEnchant = leftText:match(ENCHANTED_TOOLTIP_LINE:gsub("%%s", "(.+)"))
 
 			if foundEnchant ~= nil then
@@ -189,10 +199,17 @@ table.insert(Private.LoginFnQueue, function()
 
 			if foundLevel then
 				initialItemLevel = foundLevel
+				itemLevelFound = true
 			end
 		end
 
-		if enchant == "" and SlotIsEnchantable(slot) then
+		-- Every equippable item lists an item level, so its absence means the data is still loading
+		if not itemLevelFound then
+			pendingTooltipData[tooltipData.dataInstanceID] = { unit = unit, slot = slot }
+			return initialItemLevel, ""
+		end
+
+		if enchant == "" and SlotIsEnchantable(slot, itemLink) then
 			enchant = missingEnchantsLabel
 		end
 
@@ -231,8 +248,19 @@ table.insert(Private.LoginFnQueue, function()
 		local LevelText, EnchantText, GemFrames = SetupFrames(slot, slotFrameName)
 		local itemLink = GetInventoryItemLink(unit, slot)
 
-		-- clear all if no item equipped
-		if itemLink == nil or itemLink == "" then
+		local _, itemQuality, initialItemLevel
+		if itemLink ~= nil and itemLink ~= "" then
+			_, _, itemQuality, initialItemLevel = C_Item.GetItemInfo(itemLink)
+
+			if initialItemLevel == nil then
+				local itemId = C_Item.GetItemInfoInstant(itemLink)
+				itemInfoRequested[itemId] = { unit = unit, slot = slot }
+			end
+		end
+
+		-- clear all if no item equipped or its info is still loading, so the
+		-- previously inspected player's values don't linger
+		if initialItemLevel == nil then
 			LevelText:SetText("")
 			EnchantText:SetText("")
 
@@ -243,15 +271,7 @@ table.insert(Private.LoginFnQueue, function()
 			return
 		end
 
-		-- get item information
-		local _, _, itemQuality, initialItemLevel = C_Item.GetItemInfo(itemLink)
-		if initialItemLevel == nil then
-			local itemId = C_Item.GetItemInfoInstant(itemLink)
-			itemInfoRequested[itemId] = { unit = unit, slot = slot }
-			return
-		end
-
-		local itemLevel, enchant = ParseItemLevelAndEnchant(slot, itemLink, initialItemLevel)
+		local itemLevel, enchant = ParseItemLevelAndEnchant(unit, slot, itemLink, initialItemLevel)
 
 		-- -- set iLvl
 		local levelFont = LevelText:GetFont()
@@ -382,6 +402,7 @@ table.insert(Private.LoginFnQueue, function()
 	eventFrame:RegisterEvent("INSPECT_READY")
 	eventFrame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 	eventFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
+	eventFrame:RegisterEvent("TOOLTIP_DATA_UPDATE")
 
 	eventFrame:SetScript("OnEvent", function(_, event, ...)
 		if event == "PLAYER_EQUIPMENT_CHANGED" then
@@ -433,6 +454,21 @@ table.insert(Private.LoginFnQueue, function()
 			end
 
 			UpdateAllSlots(unit)
+		elseif event == "TOOLTIP_DATA_UPDATE" then
+			local dataInstanceId = ...
+
+			if dataInstanceId == nil or pendingTooltipData[dataInstanceId] == nil then
+				return
+			end
+
+			local request = pendingTooltipData[dataInstanceId]
+			pendingTooltipData[dataInstanceId] = nil
+
+			if not characterOpen and not inspecting then
+				return
+			end
+
+			UpdateSlot(request.unit, request.slot)
 		end
 	end)
 end)

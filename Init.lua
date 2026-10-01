@@ -1,7 +1,7 @@
 local addonName, Private = ...
 
 Private.LoginFnQueue = {}
-Private.IsClassicForever = select(4, GetBuildInfo()) < 120000
+Private.IsClassicForever = WOW_PROJECT_ID == WOW_PROJECT_CAMELOT
 
 EventUtil.ContinueOnAddOnLoaded(addonName, function()
 	local defaults = {

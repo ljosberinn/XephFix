@@ -117,7 +117,8 @@ table.insert(Private.LoginFnQueue, function()
 			zoneIdToSpellIdsMap[dungeons.kingsRest] = {
 				CauterizingFlame,
 				Zephyr,
-				Overawe
+				Overawe,
+				BestowWeyrnstone,
 			}
 
 			zoneIdToSpellIdsMap[dungeons.rubyLifePools] = {

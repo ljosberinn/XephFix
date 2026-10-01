@@ -130,6 +130,30 @@ table.insert(Private.LoginFnQueue, function()
 		SetTooltipLine(infoLine, infoText .. "|cffffffff|r")
 	end
 
+	---@param unit UnitToken
+	local function AddMythicPlusRatingLine(unit)
+		if not canaccessvalue(unit) then
+			return
+		end
+
+		local ratingSummary = C_PlayerInfo.GetPlayerMythicPlusRatingSummary(unit)
+
+		if not ratingSummary then
+			return
+		end
+
+		local score = ratingSummary.currentSeasonScore
+
+		if not canaccessvalue(score) or score == 0 then
+			return
+		end
+
+		local color = C_ChallengeMode.GetDungeonScoreRarityColor(score) or HIGHLIGHT_FONT_COLOR
+
+		GameTooltip:AddDoubleLine(DUNGEON_SCORE, color:WrapTextInColorCode(tostring(math.floor(score))))
+		GameTooltip:Show()
+	end
+
 	---@return number? lineIndex
 	local function FindMobLevelLine()
 		for lineIndex = 2, 4 do
@@ -285,6 +309,10 @@ table.insert(Private.LoginFnQueue, function()
 
 		if isPlayer then
 			ApplyPlayerInfoLine(unit, infoLine, specLine, reaction, classColorCode)
+
+			if not Private.IsClassicForever then
+				AddMythicPlusRatingLine(unit)
+			end
 		end
 
 		-- Living mobs in brighter red, tap denied mobs in steel blue

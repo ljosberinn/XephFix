@@ -93,3 +93,4 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - hides the tooltip health bar
   - class colors names, guild, spec and reaction lines, colors mob names by tap state
   - rewrites the level line with difficulty color, creature type and classification
+  - appends the player's Mythic+ rating in its rarity color
