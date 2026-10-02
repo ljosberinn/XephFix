@@ -5,6 +5,7 @@ Private.IsClassicForever = WOW_PROJECT_ID == WOW_PROJECT_CAMELOT
 
 EventUtil.ContinueOnAddOnLoaded(addonName, function()
 	local defaults = {
+		ActionTracker = false,
 		AddonManagement = true,
 		ApplicantListVisibility = true,
 		AutoDialogueInteraction = true,
