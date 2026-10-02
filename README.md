@@ -12,6 +12,11 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
 
 ## Modules
 
+- ActionTracker
+  - off by default: `/run XephUISaved.ActionTracker = true`
+  - shows your last 5 casts below the player frame and its class resources, plus the cast in progress
+  - interrupted casts, kicked channels and unfinished empowers are greyed out and marked with a raid cross
+  - released empowers show the stage they were released at
 - AddonManagement
 - ApplicantListVisibility
   - reveals the group finder applicant list to non-leaders by hiding the cover
