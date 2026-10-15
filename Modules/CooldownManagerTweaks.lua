@@ -21,12 +21,16 @@ table.insert(Private.LoginFnQueue, function()
 	---@class PandemicFrame : Frame
 	---@field Border Frame?
 
+	---@class PixelBorderFrame : Frame
+	---@field HorizontalLines Texture[]
+	---@field VerticalLines Texture[]
+
 	---@class CooldownViewerItem : Frame
 	---@field Icon Texture?
 	---@field Cooldown CooldownFrame?
 	---@field Applications ApplicationsFrame?
 	---@field ChargeCount ChargeCountFrame?
-	---@field CustomBorderFrame Frame?
+	---@field CustomBorderFrame PixelBorderFrame?
 	---@field layoutIndex integer?
 	---@field DebuffBorder Frame?
 	---@field PandemicIcon PandemicFrame?
@@ -80,27 +84,30 @@ table.insert(Private.LoginFnQueue, function()
 	end
 
 	---@param parent Frame
-	---@return Frame
+	---@return PixelBorderFrame
 	local function CreatePixelBorder(parent)
+		---@type PixelBorderFrame
 		local borderFrame = CreateFrame("Frame", nil, parent, layoutScriptOptOutTemplate)
 		borderFrame:SetAllPoints(parent)
+		borderFrame.HorizontalLines = {}
+		borderFrame.VerticalLines = {}
 
 		for _, edge in ipairs({ "TOP", "BOTTOM" }) do
 			local line = borderFrame:CreateTexture(nil, "OVERLAY")
 			line:SetTexture(SQUARE_TEXTURE)
 			line:SetVertexColor(0, 0, 0, 1)
-			line:SetHeight(BORDER_PIXELS)
 			line:SetPoint(edge .. "LEFT", borderFrame, edge .. "LEFT", 0, 0)
 			line:SetPoint(edge .. "RIGHT", borderFrame, edge .. "RIGHT", 0, 0)
+			table.insert(borderFrame.HorizontalLines, line)
 		end
 
 		for _, edge in ipairs({ "LEFT", "RIGHT" }) do
 			local line = borderFrame:CreateTexture(nil, "OVERLAY")
 			line:SetTexture(SQUARE_TEXTURE)
 			line:SetVertexColor(0, 0, 0, 1)
-			line:SetWidth(BORDER_PIXELS)
 			line:SetPoint("TOP" .. edge, borderFrame, "TOP" .. edge, 0, 0)
 			line:SetPoint("BOTTOM" .. edge, borderFrame, "BOTTOM" .. edge, 0, 0)
+			table.insert(borderFrame.VerticalLines, line)
 		end
 
 		return borderFrame
@@ -113,6 +120,9 @@ table.insert(Private.LoginFnQueue, function()
 		if not icon then
 			return
 		end
+
+		-- Edit Mode icon size scales the viewer, so a 1 unit border is rarely 1 pixel.
+		local borderSize = BORDER_PIXELS * PixelUtil.GetPixelToUIUnitFactor() / button:GetEffectiveScale()
 
 		-- Fill icon to button edges with no zoom crop
 		icon:ClearAllPoints()
@@ -129,8 +139,8 @@ table.insert(Private.LoginFnQueue, function()
 			if child and child.SetSwipeTexture then
 				child:SetSwipeTexture(SQUARE_TEXTURE)
 				child:ClearAllPoints()
-				child:SetPoint("TOPLEFT", button, "TOPLEFT", BORDER_PIXELS, -BORDER_PIXELS)
-				child:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -BORDER_PIXELS, BORDER_PIXELS)
+				child:SetPoint("TOPLEFT", button, "TOPLEFT", borderSize, -borderSize)
+				child:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -borderSize, borderSize)
 			end
 		end
 
@@ -181,6 +191,14 @@ table.insert(Private.LoginFnQueue, function()
 			local borderFrame = CreatePixelBorder(button)
 			borderFrame:SetFrameLevel(button:GetFrameLevel() + 1)
 			button.CustomBorderFrame = borderFrame
+		end
+
+		for _, line in ipairs(button.CustomBorderFrame.HorizontalLines) do
+			line:SetHeight(borderSize)
+		end
+
+		for _, line in ipairs(button.CustomBorderFrame.VerticalLines) do
+			line:SetWidth(borderSize)
 		end
 	end
 
@@ -347,23 +365,29 @@ table.insert(Private.LoginFnQueue, function()
 		local padding = isHorizontal and (BuffIconCooldownViewer.childXPadding or 0)
 			or (BuffIconCooldownViewer.childYPadding or 0)
 
+		-- Whole-pixel step and start keep every icon on the same sub-pixel offset; otherwise the
+		-- half-step centering and per-icon rounding make borders and gaps uneven.
+		local scale = BuffIconCooldownViewer:GetEffectiveScale()
+
 		if isHorizontal then
 			local directionModifier = isNormalDirection and 1 or -1
-			local startX = ((iconWidth + padding) * missingSlots / 2) * directionModifier
+			local step = PixelUtil.GetNearestPixelSize(iconWidth + padding, scale)
+			local startX = PixelUtil.GetNearestPixelSize(step * missingSlots / 2, scale) * directionModifier
 			local anchor = isNormalDirection and "TOPLEFT" or "TOPRIGHT"
 
 			for index, icon in ipairs(visibleNativeIcons) do
-				local xOffset = startX + (index - 1) * (iconWidth + padding) * directionModifier
+				local xOffset = startX + (index - 1) * step * directionModifier
 				icon:ClearAllPoints()
 				icon:SetPoint(anchor, BuffIconCooldownViewer, anchor, xOffset, 0)
 			end
 		else
 			local directionModifier = isNormalDirection and -1 or 1
-			local startY = -((iconHeight + padding) * missingSlots / 2) * directionModifier
+			local step = PixelUtil.GetNearestPixelSize(iconHeight + padding, scale)
+			local startY = -PixelUtil.GetNearestPixelSize(step * missingSlots / 2, scale) * directionModifier
 			local anchor = isNormalDirection and "BOTTOMLEFT" or "TOPLEFT"
 
 			for index, icon in ipairs(visibleNativeIcons) do
-				local yOffset = startY - (index - 1) * (iconHeight + padding) * directionModifier
+				local yOffset = startY - (index - 1) * step * directionModifier
 				icon:ClearAllPoints()
 				icon:SetPoint(anchor, BuffIconCooldownViewer, anchor, 0, yOffset)
 			end
@@ -444,11 +468,19 @@ table.insert(Private.LoginFnQueue, function()
 			PerformRecenter()
 		end)
 
-		StyleViewer(EssentialCooldownViewer, "EssentialCooldownViewer")
-		StyleViewer(UtilityCooldownViewer, "UtilityCooldownViewer")
-		StyleViewer(BuffIconCooldownViewer, "BuffIconCooldownViewer")
+		local function StyleAllViewers()
+			StyleViewer(EssentialCooldownViewer, "EssentialCooldownViewer")
+			StyleViewer(UtilityCooldownViewer, "UtilityCooldownViewer")
+			StyleViewer(BuffIconCooldownViewer, "BuffIconCooldownViewer")
 
-		RecenterBuffIcons()
+			RecenterBuffIcons()
+		end
+
+		-- Border thickness and recenter offsets are derived from the pixel size.
+		EventRegistry:RegisterFrameEventAndCallback("UI_SCALE_CHANGED", StyleAllViewers)
+		EventRegistry:RegisterFrameEventAndCallback("DISPLAY_SIZE_CHANGED", StyleAllViewers)
+
+		StyleAllViewers()
 
 		for _, child in ipairs({ BuffIconCooldownViewer:GetChildren() }) do
 			SetupBuffIconItem(child)

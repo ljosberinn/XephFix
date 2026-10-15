@@ -1,4 +1,4 @@
-## Interface: 120100, 120105, 16001
+## Interface: 120105, 16001
 ## Title: XephUI
 ## DefaultState: Enabled
 ## Author: Xephyris-Blackrock-EU
@@ -16,6 +16,7 @@ Init.lua
 Modules/ActionTracker.lua
 Modules/AddonManagement.lua
 Modules/ApplicantListVisibility.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot]
+Modules/AuraSounds.lua
 Modules/AutoDialogueInteraction.lua
 Modules/AutoGreet.lua
 Modules/AutoKeystone.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot]
@@ -33,6 +34,7 @@ Modules/CleanNamesInInstances.lua
 Modules/CooldownManagerMountOpacity.lua
 Modules/CVars.lua
 Modules/DamageMeterToggle.lua
+Modules/DebuffDurationDecimals.lua
 Modules/DraggableFrames.lua
 Modules/EventToastBlocker.lua
 Modules/EvokerLetFly.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 

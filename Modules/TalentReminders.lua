@@ -146,7 +146,7 @@ table.insert(Private.LoginFnQueue, function()
 			zoneIdToSpellIdsMap[dungeons.voidscarArena] = {
 				CauterizingFlame,
 				Zephyr,
-				Overawe
+				Overawe,
 			}
 
 			if specId == 1473 then
@@ -156,6 +156,8 @@ table.insert(Private.LoginFnQueue, function()
 				table.insert(zoneIdToSpellIdsMap[dungeons.skyreach], BestowWeyrnstone)
 				table.insert(zoneIdToSpellIdsMap[dungeons.skyreach], SleepWalk)
 				table.insert(zoneIdToSpellIdsMap[dungeons.magistersTerrace], BestowWeyrnstone)
+				table.insert(zoneIdToSpellIdsMap[dungeons.voidscarArena], BestowWeyrnstone)
+				table.insert(zoneIdToSpellIdsMap[dungeons.denOfNalorakk], BestowWeyrnstone)
 			end
 		end
 

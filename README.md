@@ -61,6 +61,9 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - enables aura spell IDs in tooltips
 - DamageMeterToggle
   - automatically shows the damage meter in dungeons, but hides it outside
+- DebuffDurationDecimals
+  - shows tenths of a second on your debuff durations below 5 seconds, in and out of combat
+  - redraws the default debuff frame's buttons with Blizzard's aura container, following its Edit Mode settings
 - DraggableFrames
   - makes a couple additional default ui frames draggable
     - applies to Spellbook and the Group Finder

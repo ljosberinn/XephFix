@@ -447,8 +447,9 @@ table.insert(Private.LoginFnQueue, function()
 
 		TearDown(true)
 
-		-- The same bounds BigWigs' own StartBreak clamps to.
-		local remainingSeconds = Clamp(seconds, 60, 3600)
+		-- The same bounds BigWigs' own StartBreak clamps to. 12.1.0 lacks the native math.clamp;
+		-- drop the fallback along with 120100.
+		local remainingSeconds = (math.clamp or Clamp)(seconds, 60, 3600)
 
 		breakEndTime = GetTime() + remainingSeconds
 		breakSender = senderName

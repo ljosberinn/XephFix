@@ -5,12 +5,12 @@ table.insert(Private.LoginFnQueue, function()
 		return
 	end
 
-	local ICON_SIZE = 36
-	local ICON_SPACING = 2
-	local CURRENT_GAP = 8
-	local HISTORY_SIZE = 5
+	-- One slot under each MainActionBar button: history in all but the last, the current cast in the last.
+	local SLOT_COUNT = 12
+	local HISTORY_SIZE = SLOT_COUNT - 1
 	local BORDER_PIXELS = 1
-	local PADDING_Y = 4
+	-- Between an icon and its spell ID label, and between that label and the action bar.
+	local LABEL_GAP = 2
 	local EXPIRY_SECONDS = 10
 	local FADE_SECONDS = 0.3
 	local SQUARE_TEXTURE = "Interface\\Buttons\\WHITE8x8"
@@ -84,6 +84,7 @@ table.insert(Private.LoginFnQueue, function()
 		[337819] = true, -- Screaming Brutality - Throw Glaive
 		[346665] = true, -- Throw Glaive
 		[358734] = true, -- Glide
+		[361022] = true, -- Sense Power
 		[361195] = true, -- Verdant Embrace friendly heal
 		[361509] = true, -- Living Flame friendly heal
 		[363922] = true, -- Dream Breath fake
@@ -106,24 +107,30 @@ table.insert(Private.LoginFnQueue, function()
 		[393035] = true, -- Throw Glaive
 		[394003] = true, -- Spark of Madness
 		[394007] = true, -- Engineering fake
+		[394008] = true, -- A Looker's Charm
 		[394009] = true, -- Fishing fake
 		[395369] = true, -- Fishing DNT
 		[395392] = true, -- Blacksmithing fake
 		[395394] = true, -- Alchemy DNT
 		[395396] = true, -- Tailoring fake
 		[395397] = true, -- Engineering DNT
+		[395398] = true, -- Enchanting Tool Equipped (DNT)
+		[395469] = true, -- Enchanting Gear Equipped (DNT)
 		[395470] = true, -- Engineering DNT
 		[395471] = true, -- Engineering DNT
 		[395472] = true, -- Cooking
 		[395473] = true, -- Alchemy DNT
 		[395475] = true, -- Blacksmithing fake
+		[396557] = true, -- Verdant Embrace buff
 		[397374] = true, -- Empower instant cast fake
+		[403758] = true, -- Breath of Eons, landing cast
 		[408385] = true, -- Crusading Strikes
 		[410499] = true, -- Rested fake
 		[429826] = true, -- Hammer of Light
 		[431398] = true, -- Empyrean Hammer
 		[434144] = true, -- Infliction of Sorrow fake cast
 		[437965] = true, -- Pulsing Flames, fake cast in Cinderbrew Area first pull
+		[440839] = true, -- Kindness of Chi'ji
 		[441426] = true, -- Exterminate cleave
 		[441437] = true, -- Arachnophobia
 		[455693] = true, -- Tailoring DNT
@@ -136,20 +143,31 @@ table.insert(Private.LoginFnQueue, function()
 		[455727] = true, -- Blacksmithing fake
 		[455738] = true, -- Cooking
 		[455760] = true, -- Alchemy DNT
+		[455770] = true, -- Prof Gear Skill Bonus (DNT)
 		[455773] = true, -- Profession DNT
+		[455779] = true, -- Prof Gear Skill Bonus (DNT)
 		[455789] = true, -- Engineering DNT
 		[456640] = true, -- Consuming Fire fake cast
 		[458357] = true, -- Chain Heal via Lively Totems
 		[467455] = true, -- Action tracker fake cast
 		[470411] = true, -- Flame Shock fake cast
+		[1216737] = true, -- Interrogate
+		[1218610] = true, -- Bounce
+		[1219488] = true, -- Open (Murder Row 2nd boss door)
+		[1234173] = true, -- Prof Gear Skill Bonus (DNT)
+		[1240090] = true, -- Construction Window: Midnight Flask Cauldron
 		[1251595] = true, -- Flamefang Pitch, Survival Hunter
 		[1253859] = true, -- Takedown, Survival Hunter
 		[1263886] = true, -- Transmog fake
 		[1270292] = true, -- Lunar Beam fake
+		[1292664] = true, -- Med'jai's Protection
 	}
 
 	---@class ActionTrackerIcon : Frame
 	---@field Icon Texture
+	---@field HorizontalBorders Texture[]
+	---@field VerticalBorders Texture[]
+	---@field SpellID FontString
 	---@field Cross Texture?
 	---@field Stage FontString?
 	---@field Cooldown Cooldown?
@@ -159,32 +177,38 @@ table.insert(Private.LoginFnQueue, function()
 
 	local container = CreateFrame("Frame", "XephUIActionTracker", UIParent)
 	container:EnableMouse(false)
-	PixelUtil.SetSize(
-		container,
-		HISTORY_SIZE * ICON_SIZE + (HISTORY_SIZE - 1) * ICON_SPACING + CURRENT_GAP + ICON_SIZE,
-		ICON_SIZE
-	)
 
-	-- Same placement Blizzard uses for the cast bar when locked to the player frame
-	-- (AnchorCastBarToPlayerFrame in PlayerFrame.lua): inset to the visible frame art, then pushed
-	-- below the class resource container.
-	local function AnchorToPlayerFrame()
-		local playerFrameScale = PlayerFrame:GetScale()
-		local resourceContainer = GetPlayerBottomManagedFrameContainer()
-		local offsetY = 12
+	-- 12.1.0 lacks the native math.round; drop the fallback along with 120100.
+	local round = math.round or Round
 
-		if resourceContainer:IsShown() then
-			offsetY = offsetY - resourceContainer:GetHeight()
-		end
+	local actionButtons = MainActionBar.actionButtons
+
+	-- Layout metrics in container units, refreshed by ApplyPixelLayout.
+	local pixelSize = 1
+	local rowGap = 0
+	---@type number[]
+	local slotOffsets = {}
+
+	local function AnchorToActionBar()
+		local anchorButton = actionButtons[1]
 
 		container:ClearAllPoints()
-		PixelUtil.SetPoint(
-			container,
-			"TOPRIGHT",
-			PlayerFrame,
-			"BOTTOMRIGHT",
-			-24 * playerFrameScale,
-			offsetY * playerFrameScale - PADDING_Y
+		container:SetPoint("TOPLEFT", anchorButton, "BOTTOMLEFT", 0, -rowGap)
+
+		-- The action bar rarely sits on whole pixels, which pixel snapping turns into uneven borders
+		-- and gaps on every child; nudge the container onto the grid instead.
+		local left, top = container:GetLeft(), container:GetTop()
+
+		if not left or not top then
+			return
+		end
+
+		container:SetPoint(
+			"TOPLEFT",
+			anchorButton,
+			"BOTTOMLEFT",
+			round(left / pixelSize) * pixelSize - left,
+			round(top / pixelSize) * pixelSize - top - rowGap
 		)
 	end
 
@@ -192,29 +216,39 @@ table.insert(Private.LoginFnQueue, function()
 	local function CreateIcon()
 		---@type ActionTrackerIcon
 		local icon = CreateFrame("Frame", nil, container)
-		PixelUtil.SetSize(icon, ICON_SIZE, ICON_SIZE)
 		icon:Hide()
 
 		icon.Icon = icon:CreateTexture(nil, "ARTWORK")
 		icon.Icon:SetAllPoints()
 
+		-- Above the cooldown swipe, so neither the border nor the spell ID gets darkened.
+		local overlay = CreateFrame("Frame", nil, icon)
+		overlay:SetAllPoints()
+		overlay:SetFrameLevel(icon:GetFrameLevel() + 2)
+
+		icon.HorizontalBorders = {}
+		icon.VerticalBorders = {}
+
 		for _, edge in ipairs({ "TOP", "BOTTOM" }) do
-			local line = icon:CreateTexture(nil, "OVERLAY")
+			local line = overlay:CreateTexture(nil, "OVERLAY")
 			line:SetTexture(SQUARE_TEXTURE)
 			line:SetVertexColor(0, 0, 0, 1)
-			PixelUtil.SetHeight(line, BORDER_PIXELS)
 			line:SetPoint(edge .. "LEFT")
 			line:SetPoint(edge .. "RIGHT")
+			table.insert(icon.HorizontalBorders, line)
 		end
 
 		for _, edge in ipairs({ "LEFT", "RIGHT" }) do
-			local line = icon:CreateTexture(nil, "OVERLAY")
+			local line = overlay:CreateTexture(nil, "OVERLAY")
 			line:SetTexture(SQUARE_TEXTURE)
 			line:SetVertexColor(0, 0, 0, 1)
-			PixelUtil.SetWidth(line, BORDER_PIXELS)
 			line:SetPoint("TOP" .. edge)
 			line:SetPoint("BOTTOM" .. edge)
+			table.insert(icon.VerticalBorders, line)
 		end
+
+		icon.SpellID = overlay:CreateFontString(nil, "OVERLAY", "NumberFont_Shadow_Tiny")
+		icon.SpellID:SetPoint("BOTTOM", icon, "TOP", 0, LABEL_GAP)
 
 		return icon
 	end
@@ -227,7 +261,6 @@ table.insert(Private.LoginFnQueue, function()
 
 		icon.Cross = icon:CreateTexture(nil, "OVERLAY", nil, 1)
 		icon.Cross:SetTexture(CROSS_TEXTURE)
-		PixelUtil.SetSize(icon.Cross, ICON_SIZE * 0.6, ICON_SIZE * 0.6)
 		icon.Cross:SetPoint("CENTER")
 		icon.Cross:Hide()
 
@@ -253,11 +286,9 @@ table.insert(Private.LoginFnQueue, function()
 	end
 
 	local currentIcon = CreateIcon()
-	PixelUtil.SetPoint(currentIcon, "RIGHT", container, "RIGHT", 0, 0)
+	currentIcon:SetPoint("TOPRIGHT")
 
 	currentIcon.Cooldown = CreateFrame("Cooldown", nil, currentIcon)
-	PixelUtil.SetPoint(currentIcon.Cooldown, "TOPLEFT", currentIcon, "TOPLEFT", BORDER_PIXELS, -BORDER_PIXELS)
-	PixelUtil.SetPoint(currentIcon.Cooldown, "BOTTOMRIGHT", currentIcon, "BOTTOMRIGHT", -BORDER_PIXELS, BORDER_PIXELS)
 	currentIcon.Cooldown:SetSwipeTexture(SQUARE_TEXTURE, 1, 1, 1, 1)
 	currentIcon.Cooldown:SetSwipeColor(0, 0, 0, 0.7)
 	currentIcon.Cooldown:SetDrawEdge(false)
@@ -288,11 +319,84 @@ table.insert(Private.LoginFnQueue, function()
 	local function LayoutHistory()
 		for age = 0, HISTORY_SIZE - 1 do
 			local icon = historyIcons[(newestIndex - age - 1) % HISTORY_SIZE + 1]
-			local offsetX = (HISTORY_SIZE - 1 - age) * (ICON_SIZE + ICON_SPACING)
-
 			icon:ClearAllPoints()
-			PixelUtil.SetPoint(icon, "LEFT", container, "LEFT", offsetX, 0)
+			icon:SetPoint("TOPLEFT", slotOffsets[HISTORY_SIZE - age], 0)
 		end
+	end
+
+	-- PixelUtil only rounds UI unit sizes to whole pixels, so a 1 unit border can still come out
+	-- at 2 pixels; borders are sized from the physical pixel instead.
+	local function ApplyPixelLayout()
+		local scale = container:GetEffectiveScale()
+		local firstButton = actionButtons[1]
+		local firstButtonScreenLeft = firstButton:GetLeft() * firstButton:GetEffectiveScale()
+
+		pixelSize = PixelUtil.GetPixelToUIUnitFactor() / scale
+
+		local borderSize = BORDER_PIXELS * pixelSize
+		local buttonSize = firstButton:GetWidth() * firstButton:GetEffectiveScale() / scale
+		local _, labelHeight = currentIcon.SpellID:GetFont()
+
+		rowGap = PixelUtil.GetNearestPixelSize(labelHeight + LABEL_GAP * 2, scale)
+
+		-- Shrinks to the room left below the label row, so a bar near the screen bottom doesn't push the
+		-- icons off screen. Floored, since rounding up past that room would clip a pixel row.
+		local spaceBelow = firstButton:GetBottom() * firstButton:GetEffectiveScale() / scale - rowGap
+		local fittingSize = math.floor(spaceBelow / pixelSize) * pixelSize
+		local iconSize = math.max(0, math.min(PixelUtil.GetNearestPixelSize(buttonSize, scale), fittingSize))
+		local crossSize = PixelUtil.GetNearestPixelSize(iconSize * 0.6, scale)
+		local centeringOffset = (buttonSize - iconSize) / 2
+
+		-- Snapped per slot, since accumulating a snapped step would drift away from the buttons.
+		for slot = 1, SLOT_COUNT do
+			local button = actionButtons[slot]
+			local offset = (button:GetLeft() * button:GetEffectiveScale() - firstButtonScreenLeft) / scale
+			slotOffsets[slot] = round((offset + centeringOffset) / pixelSize) * pixelSize
+		end
+
+		-- currentIcon is anchored TOPRIGHT, so this width puts it on the last slot.
+		container:SetSize(slotOffsets[SLOT_COUNT] + iconSize, iconSize)
+
+		for index = 1, HISTORY_SIZE + 1 do
+			local icon = historyIcons[index] or currentIcon
+			icon:SetSize(iconSize, iconSize)
+
+			if icon.Cross then
+				icon.Cross:SetSize(crossSize, crossSize)
+			end
+
+			for _, line in ipairs(icon.HorizontalBorders) do
+				line:SetHeight(borderSize)
+			end
+
+			for _, line in ipairs(icon.VerticalBorders) do
+				line:SetWidth(borderSize)
+			end
+		end
+
+		currentIcon.Cooldown:SetPoint("TOPLEFT", borderSize, -borderSize)
+		currentIcon.Cooldown:SetPoint("BOTTOMRIGHT", -borderSize, borderSize)
+
+		LayoutHistory()
+		AnchorToActionBar()
+	end
+
+	local isLayoutQueued = false
+
+	-- While applying a layout, Edit Mode parks default-positioned bars at the top of the screen
+	-- (EditModeSystemMixin:ApplySystemAnchor) and only moves them into place once it's done, so the
+	-- measurement waits for that to settle.
+	local function QueuePixelLayout()
+		if isLayoutQueued then
+			return
+		end
+
+		isLayoutQueued = true
+
+		RunNextFrame(function()
+			isLayoutQueued = false
+			ApplyPixelLayout()
+		end)
 	end
 
 	---@param spellID number
@@ -312,6 +416,8 @@ table.insert(Private.LoginFnQueue, function()
 		icon.Icon:SetTexture(texture)
 		icon.Icon:SetDesaturated(cancelled)
 		icon.Cross:SetShown(cancelled)
+		icon.SpellID:SetFormattedText("%d", spellID)
+		icon.SpellID:SetShown(not C_SpellBook.IsSpellInSpellBook(spellID))
 
 		if stage then
 			icon.Stage:SetFormattedText("%d", stage)
@@ -366,6 +472,8 @@ table.insert(Private.LoginFnQueue, function()
 		currentKind = kind
 
 		currentIcon.Icon:SetTexture(texture)
+		currentIcon.SpellID:SetFormattedText("%d", spellID)
+		currentIcon.SpellID:SetShown(not C_SpellBook.IsSpellInSpellBook(spellID))
 		currentIcon.Cooldown:SetReverse(kind ~= "cast")
 		ApplyCurrentDuration(duration)
 		currentIcon:Show()
@@ -555,11 +663,13 @@ table.insert(Private.LoginFnQueue, function()
 			icon.Icon:SetDesaturated(false)
 			icon.Cross:Hide()
 			icon.Stage:Hide()
+			icon.SpellID:SetText("")
 			icon:SetAlpha(1)
 			icon:Show()
 		end
 
 		currentIcon.Icon:SetTexture(GetPreviewTexture())
+		currentIcon.SpellID:SetText("")
 		currentIcon.Cooldown:Clear()
 		currentIcon:Show()
 	end, container)
@@ -573,12 +683,16 @@ table.insert(Private.LoginFnQueue, function()
 
 		currentIcon:Hide()
 
-		-- PlayerFrame size changes in Edit Mode rescale without a resource container relayout.
-		AnchorToPlayerFrame()
+		-- Dragging the bar in Edit Mode bypasses ApplySystemAnchor, leaving the pixel nudge and the
+		-- room below the bar stale.
+		QueuePixelLayout()
 	end, container)
 
-	hooksecurefunc("PlayerFrame_AdjustAttachments", AnchorToPlayerFrame)
+	hooksecurefunc(MainActionBar, "ApplySystemAnchor", QueuePixelLayout)
+	hooksecurefunc(MainActionBar, "UpdateGridLayout", QueuePixelLayout)
+	hooksecurefunc(MainActionBar, "UpdateSystemSettingIconSize", QueuePixelLayout)
+	EventRegistry:RegisterFrameEventAndCallback("UI_SCALE_CHANGED", QueuePixelLayout, container)
+	EventRegistry:RegisterFrameEventAndCallback("DISPLAY_SIZE_CHANGED", QueuePixelLayout, container)
 
-	AnchorToPlayerFrame()
-	LayoutHistory()
+	ApplyPixelLayout()
 end)

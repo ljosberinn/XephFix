@@ -181,7 +181,7 @@ table.insert(Private.LoginFnQueue, function()
 			StaticPopup_StandardNonEmptyTextHandler(dialog:GetEditBox())
 		end,
 		OnAccept = function(dialog, data)
-			data.callback(strtrim(dialog:GetEditBox():GetText()))
+			data.callback(string.trim(dialog:GetEditBox():GetText()))
 		end,
 		EditBoxOnEnterPressed = function(editBox, data)
 			local dialog = editBox:GetParent()
@@ -190,7 +190,7 @@ table.insert(Private.LoginFnQueue, function()
 				return
 			end
 
-			data.callback(strtrim(editBox:GetText()))
+			data.callback(string.trim(editBox:GetText()))
 			dialog:Hide()
 		end,
 		EditBoxOnTextChanged = StaticPopup_StandardNonEmptyTextHandler,
@@ -521,7 +521,8 @@ table.insert(Private.LoginFnQueue, function()
 				return
 			end
 
-			local characterKeys = GetKeysArray(GetDatabase().KnownCharacters)
+			-- 12.1.0 lacks the native table.keys; drop the fallback along with 120100.
+			local characterKeys = (table.keys or GetKeysArray)(GetDatabase().KnownCharacters)
 			table.sort(characterKeys)
 
 			for _, characterKey in ipairs(characterKeys) do
@@ -633,7 +634,7 @@ table.insert(Private.LoginFnQueue, function()
 	SLASH_XEPHUI1 = "/xephui"
 
 	SlashCmdList.XEPHUI = function(argument)
-		local name = strtrim(argument)
+		local name = string.trim(argument)
 
 		if name == "" then
 			if settingsCategory then
