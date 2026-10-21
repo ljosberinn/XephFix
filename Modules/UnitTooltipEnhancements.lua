@@ -197,13 +197,13 @@ table.insert(Private.LoginFnQueue, function()
 
 		if classification == "elite" then
 			-- Dungeon and raid bosses report as elite, the tooltip already says boss
-			classificationLabel = strfind(existingText, BOSS_LABEL, 1, true) and BOSS_LABEL
+			classificationLabel = string.contains(existingText, BOSS_LABEL) and BOSS_LABEL
 				or CLASSIFICATION_LABELS.elite
 		elseif classification == "rareelite" then
-			classificationLabel = strfind(existingText, BOSS_LABEL, 1, true) and RARE_BOSS_LABEL
+			classificationLabel = string.contains(existingText, BOSS_LABEL) and RARE_BOSS_LABEL
 				or CLASSIFICATION_LABELS.rareelite
 		elseif classification == "normal" and effectiveLevel == -1 then
-			classificationLabel = strfind(existingText, BOSS_LABEL, 1, true) and BOSS_LABEL or nil
+			classificationLabel = string.contains(existingText, BOSS_LABEL) and BOSS_LABEL or nil
 		else
 			classificationLabel = CLASSIFICATION_LABELS[classification]
 		end

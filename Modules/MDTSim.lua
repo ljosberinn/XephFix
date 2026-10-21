@@ -275,7 +275,8 @@ table.insert(Private.LoginFnQueue, function()
 			pendingInspects = {}
 
 			local profiles = ""
-			local _, _, _, _, playerRole = GetSpecializationInfo(GetSpecialization())
+			local _, _, _, _, playerRole =
+				C_SpecializationInfo.GetSpecializationInfo(C_SpecializationInfo.GetSpecialization())
 			local roleHealthTotal = roleHealthContribution[playerRole]
 			local text = ""
 			local profileCount = 0
@@ -862,7 +863,7 @@ table.insert(Private.LoginFnQueue, function()
 
 			inspectInfo[unit] = {
 				talents = C_Traits.GenerateInspectImportString(unit),
-				specializationId = GetInspectSpecialization(unit),
+				specializationId = C_SpecializationInfo.GetInspectSpecialization(unit),
 				items = GenerateItemsText(unit),
 			}
 

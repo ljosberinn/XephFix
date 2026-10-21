@@ -262,8 +262,8 @@ table.insert(Private.LoginFnQueue, function()
 		for i = 1, #options do
 			local name = options[i].name and string.upper(options[i].name)
 
-			if name and (string.find(name, "|C", 1, true) or string.find(name, "<", 1, true)) then
-				if not string.find(name, "FF0008E8", 1, true) then
+			if name and (string.contains(name, "|C") or string.contains(name, "<")) then
+				if not string.contains(name, "FF0008E8") then
 					return true
 				end
 			end

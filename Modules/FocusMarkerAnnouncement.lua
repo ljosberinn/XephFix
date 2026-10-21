@@ -13,7 +13,7 @@ table.insert(Private.LoginFnQueue, function()
 
 			if name == macroName then
 				for line in body:gmatch("[^\n]+") do
-					if string.find(line, "/tm") ~= nil then
+					if string.contains(line, "/tm") then
 						return tonumber(line:match("^/tm%s+.-(%d+)$"))
 					end
 				end

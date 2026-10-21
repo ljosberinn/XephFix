@@ -101,7 +101,7 @@ table.insert(Private.LoginFnQueue, function()
 	---@param name string
 	---@return boolean
 	local function IsManagedAddon(name)
-		return not string.find(name, "^Blizzard_") and name ~= addonName
+		return not string.startswith(name, "Blizzard_") and name ~= addonName
 	end
 
 	---@return table[]
@@ -251,11 +251,7 @@ table.insert(Private.LoginFnQueue, function()
 	---@param total number
 	---@return string
 	local function SummariseSelection(selected, total)
-		local count = 0
-
-		for _ in pairs(selected) do
-			count = count + 1
-		end
+		local count = table.count(selected)
 
 		if count == 0 then
 			return NONE_SELECTED_LABEL
@@ -521,8 +517,7 @@ table.insert(Private.LoginFnQueue, function()
 				return
 			end
 
-			-- 12.1.0 lacks the native table.keys; drop the fallback along with 120100.
-			local characterKeys = (table.keys or GetKeysArray)(GetDatabase().KnownCharacters)
+			local characterKeys = table.keys(GetDatabase().KnownCharacters)
 			table.sort(characterKeys)
 
 			for _, characterKey in ipairs(characterKeys) do
@@ -543,13 +538,7 @@ table.insert(Private.LoginFnQueue, function()
 				return NONE_SELECTED_LABEL
 			end
 
-			local total = 0
-
-			for _ in pairs(GetDatabase().KnownCharacters) do
-				total = total + 1
-			end
-
-			return SummariseSelection(profile.Characters, total)
+			return SummariseSelection(profile.Characters, table.count(GetDatabase().KnownCharacters))
 		end))
 
 		local contentTypesSetting = Settings.RegisterProxySetting(

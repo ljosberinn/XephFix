@@ -31,6 +31,7 @@ table.insert(Private.LoginFnQueue, function()
 		[35025] = false, -- Chromie, why have I been sent back (no skip 1/3)
 		[37031] = false, -- Chromie, what was this decision (no skip 2/3)
 		[36608] = false, -- Chromie, how does the Infinite Dragonflight interfere (no skip 3/3)
+		[36217] = false, -- Arthas, we are ready
 		-- Trial of the Champion
 		[38517] = false, -- I am ready, skip the pageantry (only after one clear)
 		[38514] = false, -- I am ready (boss 1)
@@ -221,18 +222,23 @@ table.insert(Private.LoginFnQueue, function()
 		[132946] = false, -- Excavation Site 9, start (Chef Carl)
 		[132991] = false, -- Excavation Site 9, start (Lostalot)
 		-- Midnight delves, likewise disabled by default.
+		[140123] = false, -- all delves, make abundant (Dundun)
 		[136318] = false, -- Atal'Aman, start (Fleek)
 		[136385] = false, -- Atal'Aman, start (Kasha)
 		[136317] = false, -- Atal'Aman, start (Torundo The Grizzled)
 		[138496] = false, -- Atal'Aman, teleport to boss (Mojo)
+		[140366] = false, -- Atal'Aman, start (Marla)
 		[135708] = false, -- Collegiate Calamity, start (Bloomkeeper Thornflare)
 		[135865] = false, -- Collegiate Calamity, start (Celoenus Blackflame)
 		[135798] = false, -- Collegiate Calamity, start (Thalandri Fatesinger)
+		[138592] = false, -- Collegiate Calamity, start (Sir Finley Mrrgglton)
 		[139635] = false, -- Gnarldor Isle, start (Artolla)
 		[139585] = false, -- Gnarldor Isle, start (Minchi)
+		[139462] = false, -- Gnarldor Isle, start (Tormunda)
 		[136477] = false, -- Parhelion Plaza, start (Grand Artificer Romuul)
 		[134669] = false, -- Parhelion Plaza, start (Grand Artificer Romuul)
 		[136446] = false, -- Parhelion Plaza, start (Vindicator Xayann)
+		[141655] = false, -- Labyrinth of Kindo'jan, continue (Warlord Kaz'kara)
 		[134949] = false, -- Shadowguard Point, start (Lysikas)
 		[136275] = false, -- Sunkiller Sanctum, start (Riftblade Maella)
 		[136279] = false, -- Sunkiller Sanctum, start (Darkmender Deremius Duskwalk)
@@ -240,6 +246,7 @@ table.insert(Private.LoginFnQueue, function()
 		[138009] = false, -- The Darkway, start (Technician Mireille)
 		[138317] = false, -- The Darkway, start (Technician Mireille)
 		[136141] = false, -- The Darkway, start (Technician Mireille)
+		[141485] = false, -- The Darkway, start (Technician Mireille)
 		[137248] = false, -- The Gulf of Memory, start (Ashayo)
 		[137389] = false, -- The Gulf of Memory, start (Ashayo)
 		[134668] = false, -- The Grudge Pit, start (Boletus)
@@ -248,6 +255,25 @@ table.insert(Private.LoginFnQueue, function()
 		[135239] = false, -- Twilight Crypts, start (Dulgor Legstuck)
 		[135634] = false, -- Twilight Crypts, start (Twilight Hostage)
 		[135811] = false, -- Twilight Crypts, start (Scout Lok'aemon)
+		[138141] = false, -- Twilight Crypts, start (Harrison Jones)
+	}
+
+	-- Left to the player while the NPC has a quest to give or take
+	---@type table<number, true>
+	local questDeferringGossipIds = {
+		[35027] = true,
+		[38140] = true,
+		[35026] = true,
+		[35025] = true,
+		[37031] = true,
+		[36608] = true,
+		[36217] = true,
+	}
+
+	-- Their effect can't be applied in combat
+	---@type table<number, true>
+	local outOfCombatGossipIds = {
+		[137694] = true,
 	}
 
 	-- NPCs whose first gossip option is always taken, no modifier needed.
@@ -258,7 +284,6 @@ table.insert(Private.LoginFnQueue, function()
 	local alwaysSkippedNpcIDs = {
 		["132969"] = false, -- Katy Stampwhistle (toy)
 		["104201"] = false, -- Katy Stampwhistle (npc)
-		["26499"] = false, -- Arthas (The Culling of Stratholme)
 		["55500"] = false, -- Illidan (Well of Eternity)
 		["102278"] = false, -- Lieutenant Sinclari (Assault on Violet Hold)
 		["118884"] = true, -- Aegis of Aggramar (Cathedral of Eternal Night)
@@ -324,10 +349,22 @@ table.insert(Private.LoginFnQueue, function()
 			local options = C_GossipInfo.GetOptions()
 
 			for i = 1, #options do
-				local needsConfirmation = gossipIdsToAutoSelect[options[i].gossipOptionID]
+				local gossipOptionID = options[i].gossipOptionID
+				local needsConfirmation = gossipIdsToAutoSelect[gossipOptionID]
 
 				if needsConfirmation ~= nil then
-					C_GossipInfo.SelectOption(options[i].gossipOptionID, "", needsConfirmation)
+					if outOfCombatGossipIds[gossipOptionID] and InCombatLockdown() then
+						return
+					end
+
+					if
+						questDeferringGossipIds[gossipOptionID]
+						and (C_GossipInfo.GetNumAvailableQuests() > 0 or C_GossipInfo.GetNumActiveQuests() > 0)
+					then
+						return
+					end
+
+					C_GossipInfo.SelectOption(gossipOptionID, "", needsConfirmation)
 					return
 				end
 			end

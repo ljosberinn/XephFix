@@ -158,6 +158,7 @@ table.insert(Private.LoginFnQueue, function()
 				table.insert(zoneIdToSpellIdsMap[dungeons.magistersTerrace], BestowWeyrnstone)
 				table.insert(zoneIdToSpellIdsMap[dungeons.voidscarArena], BestowWeyrnstone)
 				table.insert(zoneIdToSpellIdsMap[dungeons.denOfNalorakk], BestowWeyrnstone)
+				table.insert(zoneIdToSpellIdsMap[dungeons.blindingVale], BestowWeyrnstone)
 			end
 		end
 
@@ -167,7 +168,7 @@ table.insert(Private.LoginFnQueue, function()
 	---@param text string
 	function frame:ExecuteTTTS(text)
 		for _, v in pairs(C_VoiceChat.GetTtsVoices()) do
-			if string.find(v.name, "English") then
+			if string.contains(v.name, "English") then
 				C_VoiceChat.SpeakText(v.voiceID, text, 3, C_TTSSettings.GetSpeechVolume())
 				return
 			end

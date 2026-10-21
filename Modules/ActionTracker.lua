@@ -178,9 +178,6 @@ table.insert(Private.LoginFnQueue, function()
 	local container = CreateFrame("Frame", "XephUIActionTracker", UIParent)
 	container:EnableMouse(false)
 
-	-- 12.1.0 lacks the native math.round; drop the fallback along with 120100.
-	local round = math.round or Round
-
 	local actionButtons = MainActionBar.actionButtons
 
 	-- Layout metrics in container units, refreshed by ApplyPixelLayout.
@@ -207,8 +204,8 @@ table.insert(Private.LoginFnQueue, function()
 			"TOPLEFT",
 			anchorButton,
 			"BOTTOMLEFT",
-			round(left / pixelSize) * pixelSize - left,
-			round(top / pixelSize) * pixelSize - top - rowGap
+			math.round(left / pixelSize) * pixelSize - left,
+			math.round(top / pixelSize) * pixelSize - top - rowGap
 		)
 	end
 
@@ -351,7 +348,7 @@ table.insert(Private.LoginFnQueue, function()
 		for slot = 1, SLOT_COUNT do
 			local button = actionButtons[slot]
 			local offset = (button:GetLeft() * button:GetEffectiveScale() - firstButtonScreenLeft) / scale
-			slotOffsets[slot] = round((offset + centeringOffset) / pixelSize) * pixelSize
+			slotOffsets[slot] = math.round((offset + centeringOffset) / pixelSize) * pixelSize
 		end
 
 		-- currentIcon is anchored TOPRIGHT, so this width puts it on the last slot.

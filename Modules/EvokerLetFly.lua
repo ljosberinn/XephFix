@@ -26,7 +26,7 @@ table.insert(Private.LoginFnQueue, function()
 	frame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
 	frame:SetScript("OnEvent", function(self, event, unit, castGuid, spellId, castbarId)
 		if event == "UNIT_SPELLCAST_SUCCEEDED" and breaths[spellId] then
-			PlaySoundFile("Interface\\AddOns\\XephFix\\Media\\Sound\\vo_100_centaur_brute_43_f.ogg")
+			PlaySoundFile("Interface\\AddOns\\XephUI\\Media\\Sound\\vo_100_centaur_brute_43_f.ogg")
 		end
 	end)
 end)

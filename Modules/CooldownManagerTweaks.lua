@@ -5,13 +5,6 @@ table.insert(Private.LoginFnQueue, function()
 		return
 	end
 
-	-- Only shipped in build 68914, partway through 12.1, so it cannot be named unconditionally in
-	-- CreateFrame. Builds without it also predate the forbidden aspect that makes it necessary.
-	---@type string?
-	local layoutScriptOptOutTemplate = C_XMLUtil.GetTemplateInfo("DisableUntrustedLayoutScriptsTemplate")
-		and "DisableUntrustedLayoutScriptsTemplate"
-		or nil
-
 	---@class ApplicationsFrame : Frame
 	---@field Applications FontString?
 
@@ -34,14 +27,14 @@ table.insert(Private.LoginFnQueue, function()
 	---@field layoutIndex integer?
 	---@field DebuffBorder Frame?
 	---@field PandemicIcon PandemicFrame?
-	---@field TriggerPandemicAlert (fun(self: CooldownViewerItem))?
-	---@field ShowPandemicStateFrame (fun(self: CooldownViewerItem))?
+	---@field TriggerPandemicAlert fun(self: CooldownViewerItem)
+	---@field ShowPandemicStateFrame fun(self: CooldownViewerItem)
 	---@field PandemicHooked boolean?
 	---@field PandemicBorderHooked boolean?
 	---@field RecenterHooked boolean?
-	---@field OnActiveStateChanged (fun())?
-	---@field OnUnitAuraAddedEvent (fun())?
-	---@field OnUnitAuraRemovedEvent (fun())?
+	---@field OnActiveStateChanged fun()
+	---@field OnUnitAuraAddedEvent fun()
+	---@field OnUnitAuraRemovedEvent fun()
 
 	---@class StackConfig
 	---@field point string
@@ -87,7 +80,7 @@ table.insert(Private.LoginFnQueue, function()
 	---@return PixelBorderFrame
 	local function CreatePixelBorder(parent)
 		---@type PixelBorderFrame
-		local borderFrame = CreateFrame("Frame", nil, parent, layoutScriptOptOutTemplate)
+		local borderFrame = CreateFrame("Frame", nil, parent, "DisableUntrustedLayoutScriptsTemplate")
 		borderFrame:SetAllPoints(parent)
 		borderFrame.HorizontalLines = {}
 		borderFrame.VerticalLines = {}
@@ -128,9 +121,7 @@ table.insert(Private.LoginFnQueue, function()
 		icon:ClearAllPoints()
 		icon:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
 		icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 0, 0)
-		if icon.SetTexCoord then
-			icon:SetTexCoord(0, 1, 0, 1)
-		end
+		icon:SetTexCoord(0, 1, 0, 1)
 
 		-- Replace circular swipe with square, inset by border width
 		for i = 1, select("#", button:GetChildren()) do
@@ -160,7 +151,7 @@ table.insert(Private.LoginFnQueue, function()
 			button.DebuffBorder:SetAlpha(0)
 		end
 
-		if button.TriggerPandemicAlert and not button.PandemicHooked then
+		if not button.PandemicHooked then
 			button.PandemicHooked = true
 
 			hooksecurefunc(button, "TriggerPandemicAlert", function()
@@ -176,7 +167,7 @@ table.insert(Private.LoginFnQueue, function()
 			end)
 		end
 
-		if button.ShowPandemicStateFrame and not button.PandemicBorderHooked then
+		if not button.PandemicBorderHooked then
 			button.PandemicBorderHooked = true
 
 			hooksecurefunc(button, "ShowPandemicStateFrame", function()
@@ -225,11 +216,11 @@ table.insert(Private.LoginFnQueue, function()
 			return
 		end
 
-		if button.Applications and button.Applications.SetFrameLevel then
+		if button.Applications then
 			button.Applications:SetFrameLevel(20)
 		end
 
-		if button.ChargeCount and button.ChargeCount.SetFrameLevel then
+		if button.ChargeCount then
 			button.ChargeCount:SetFrameLevel(20)
 		end
 
@@ -256,7 +247,7 @@ table.insert(Private.LoginFnQueue, function()
 
 		local cooldown = button.Cooldown
 
-		if not cooldown or not cooldown.GetCountdownFontString then
+		if not cooldown then
 			return
 		end
 
@@ -327,11 +318,11 @@ table.insert(Private.LoginFnQueue, function()
 			return true
 		end
 
-		if not BuffIconCooldownViewer.IsInitialized or not BuffIconCooldownViewer:IsInitialized() then
+		if not BuffIconCooldownViewer:IsInitialized() then
 			return false
 		end
 
-		if EditModeManagerFrame and EditModeManagerFrame.layoutApplyInProgress then
+		if EditModeManagerFrame.layoutApplyInProgress then
 			return true
 		end
 
@@ -340,7 +331,7 @@ table.insert(Private.LoginFnQueue, function()
 		local visibleNativeIcons, allIconChildren = CollectBuffIconChildren()
 
 		for _, child in ipairs(allIconChildren) do
-			if not child.RecenterHooked and child.OnActiveStateChanged then
+			if not child.RecenterHooked then
 				child.RecenterHooked = true
 				hooksecurefunc(child, "OnActiveStateChanged", PerformRecenter)
 				hooksecurefunc(child, "OnUnitAuraAddedEvent", PerformRecenter)
@@ -419,8 +410,7 @@ table.insert(Private.LoginFnQueue, function()
 		end
 
 		cd:SetCountdownFont("GameFontHighlightOutline")
-		cd:SetCountdownMillisecondsThreshold(4)
-		cd:SetUseAuraDisplayTime(true)
+		cd:SetCountdownMillisecondsThreshold(5)
 	end
 
 	-- Essential and Utility items already have their font set via cooldownFont KeyValues;
