@@ -158,6 +158,7 @@ table.insert(Private.LoginFnQueue, function()
 				table.insert(zoneIdToSpellIdsMap[dungeons.magistersTerrace], BestowWeyrnstone)
 				table.insert(zoneIdToSpellIdsMap[dungeons.voidscarArena], BestowWeyrnstone)
 				table.insert(zoneIdToSpellIdsMap[dungeons.denOfNalorakk], BestowWeyrnstone)
+				table.insert(zoneIdToSpellIdsMap[dungeons.denOfNalorakk], SleepWalk)
 				table.insert(zoneIdToSpellIdsMap[dungeons.blindingVale], BestowWeyrnstone)
 			end
 		end

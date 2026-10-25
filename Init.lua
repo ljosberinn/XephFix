@@ -38,6 +38,7 @@ EventUtil.ContinueOnAddOnLoaded(addonName, function()
 		KeystoneInfo = true,
 		MDTSim = true,
 		PlayerFrameChain = true,
+		SelfAbsorb = true,
 		Stopwatch = true,
 		TalkingHeadBlocker = true,
 		TargetShield = true,

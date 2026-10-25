@@ -87,6 +87,9 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - port of https://wago.io/LTwpBiuz_
 - PlayerFrameChain
   - adds the winged boss chain overlay to the player frame
+- SelfAbsorb
+  - replaces the player frame's absorb bar with one that extends past the frame edge instead of clipping at max health
+  - the bar length shows health plus absorbs, up to one max health worth of absorb
 - Stopwatch
   - modifies the ingame stopwatch to act as combat timer. has ui elemenets hidden such as hours, buttons and background
 - TalentReminders

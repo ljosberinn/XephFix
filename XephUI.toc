@@ -46,6 +46,7 @@ Modules/KeystoneInfo.lua [AllowLoadGameType standard][ExcludeLoadGameType camelo
 Modules/MDTSim.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
 Modules/CooldownManagerTweaks.lua
 Modules/PlayerFrameChain.lua
+Modules/SelfAbsorb.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot]
 Modules/Stopwatch.lua
 Modules/TalkingHeadBlocker.lua
 Modules/TargetShield.lua
