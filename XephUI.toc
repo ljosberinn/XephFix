@@ -4,7 +4,7 @@
 ## Author: Xephyris-Blackrock-EU
 ## Version: @project-version@
 ## SavedVariables: XephUISaved
-## OptionalDeps: BigWigs, DBM-Core
+## OptionalDeps: BigWigs, DBM-Core, NorthernSkyRaidTools
 
 ## X-Curse-Project-ID: 1554857
 
@@ -12,22 +12,23 @@ Libs/LibKeystone/LibStub/LibStub.lua
 Libs/LibKeystone/LibKeystone/LibKeystone.lua
 
 Init.lua
+Settings.lua
 
 Modules/ActionTracker.lua
 Modules/AddonManagement.lua
-Modules/ApplicantListVisibility.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot]
+Modules/ApplicantListVisibility.lua [AllowLoadGameType standard][ExcludeLoadGameType forever]
 Modules/AuraSounds.lua
 Modules/AutoDialogueInteraction.lua
 Modules/AutoGreet.lua
-Modules/AutoKeystone.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot]
+Modules/AutoKeystone.lua [AllowLoadGameType standard][ExcludeLoadGameType forever]
 Modules/AutoQuest.lua
 Modules/AutoRepair.lua
-Modules/AutoRoleSelect.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot]
+Modules/AutoRoleSelect.lua [AllowLoadGameType standard][ExcludeLoadGameType forever]
 Modules/AutoSellJunk.lua
 Modules/BreakTimer.lua
 Modules/BuffWarningPatch.lua
 Modules/CharacterSheetImprovements.lua
-Modules/CharacterStatsFormatting.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
+Modules/CharacterStatsFormatting.lua [AllowLoadGameType standard][ExcludeLoadGameType forever] 
 Modules/ChatItemEnhancements.lua
 Modules/CinematicBlocker.lua
 Modules/CleanNamesInInstances.lua
@@ -37,22 +38,25 @@ Modules/DamageMeterToggle.lua
 Modules/DebuffDurationDecimals.lua
 Modules/DraggableFrames.lua
 Modules/EventToastBlocker.lua
-Modules/EvokerLetFly.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
+Modules/EvokerLetFly.lua [AllowLoadGameType standard][ExcludeLoadGameType forever] 
 Modules/FocusMarkerAnnouncement.lua
-Modules/GearUpgradeRankTooltipRenamer.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
-Modules/GearUpgradeReminder.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
-Modules/KeystoneAnnouncer.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
-Modules/KeystoneInfo.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
-Modules/MDTSim.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
+Modules/GearUpgradeRankTooltipRenamer.lua [AllowLoadGameType standard][ExcludeLoadGameType forever] 
+Modules/GearUpgradeReminder.lua [AllowLoadGameType standard][ExcludeLoadGameType forever] 
+Modules/KeystoneAnnouncer.lua [AllowLoadGameType standard][ExcludeLoadGameType forever] 
+Modules/KeystoneInfo.lua [AllowLoadGameType standard][ExcludeLoadGameType forever] 
+Modules/MDTSim.lua [AllowLoadGameType standard][ExcludeLoadGameType forever] 
 Modules/CooldownManagerTweaks.lua
 Modules/PlayerFrameChain.lua
-Modules/SelfAbsorb.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot]
+Modules/ReadyCheck.lua [AllowLoadGameType standard][ExcludeLoadGameType forever]
+Modules/SelfAbsorb.lua [AllowLoadGameType standard,forever]
 Modules/Stopwatch.lua
 Modules/TalkingHeadBlocker.lua
 Modules/TargetShield.lua
-Modules/TalentReminders.lua [AllowLoadGameType standard][ExcludeLoadGameType camelot] 
+Modules/TalentReminders.lua [AllowLoadGameType standard][ExcludeLoadGameType forever] 
 Modules/TooltipIDs.lua
 Modules/UIScale.lua
 Modules/UnitTooltipEnhancements.lua
 Templates/AddonManagement.xml
 Templates/BreakTimer.xml
+Templates/Settings.xml
+Templates/ReadyCheck.xml [AllowLoadGameType standard][ExcludeLoadGameType forever]

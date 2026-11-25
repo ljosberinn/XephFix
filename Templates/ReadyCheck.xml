@@ -1,0 +1,72 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<!-- Chrome copied from ReadyCheckListenerFrame (Blizzard_FrameXML/Mainline/ReadyCheck.xml), so the panel reads
+	     as part of the popup below it. That frame's layout is PortraitFrameTemplate; this is the same metal border
+	     without the portrait, which moves the left edge 5 units inward (ButtonFrameTemplate_UpdateAnchors). -->
+	<Frame name="XephUIReadyCheckPanelTemplate" frameStrata="DIALOG" toplevel="true" hidden="true" virtual="true">
+		<KeyValues>
+			<KeyValue key="layoutType" value="ButtonFrameTemplateNoPortrait" type="string"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="-5">
+				<Texture parentKey="Bg" file="Interface\DialogFrame\UI-DialogBox-Background-Dark" horizTile="true" vertTile="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="8" y="-23"/>
+						<Anchor point="BOTTOMRIGHT" x="-3" y="3"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="NineSlice" inherits="NineSlicePanelTemplate"/>
+			<Frame parentKey="TitleContainer" frameLevel="510">
+				<Size x="0" y="20"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" x="0" y="-1"/>
+					<Anchor point="TOPRIGHT" x="0" y="-1"/>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString parentKey="TitleText" inherits="GameFontNormal" text="READY_CHECK" wordwrap="false">
+							<Anchors>
+								<Anchor point="TOP" x="0" y="-5"/>
+								<Anchor point="LEFT"/>
+								<Anchor point="RIGHT"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Button parentKey="CloseButton" inherits="UIPanelCloseButtonDefaultAnchors"/>
+		</Frames>
+	</Frame>
+
+	<!-- Protected, so pixel rounding has to be on from creation rather than set from Lua later. The overlay holds
+	     what must draw above the pixel border Lua adds at frame level +1. -->
+	<Button name="XephUIReadyCheckIconTemplate" inherits="SecureActionButtonTemplate" roundLayoutToNearestPixel="true" virtual="true">
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Icon" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Overlay" setAllPoints="true">
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="ReadyMark" atlas="UI-LFG-ReadyMark-Raid" hidden="true">
+							<Size x="16" y="16"/>
+							<Anchors>
+								<Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+							</Anchors>
+						</Texture>
+						<FontString parentKey="Timer" inherits="GameFontHighlight" justifyH="CENTER" hidden="true">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		<HighlightTexture file="Interface\Buttons\ButtonHilight-Square" alphaMode="ADD"/>
+	</Button>
+</Ui>

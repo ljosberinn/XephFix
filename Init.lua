@@ -4,61 +4,22 @@ Private.LoginFnQueue = {}
 Private.IsClassicForever = WOW_PROJECT_ID == WOW_PROJECT_CAMELOT
 
 EventUtil.ContinueOnAddOnLoaded(addonName, function()
-	local defaults = {
-		ActionTracker = false,
-		AddonManagement = true,
-		ApplicantListVisibility = true,
-		AuraSounds = true,
-		AutoDialogueInteraction = true,
-		AutoGreet = true,
-		AutoKeystone = true,
-		AutoQuest = true,
-		AutoRepair = true,
-		AutoRoleSelect = true,
-		AutoSellJunk = true,
-		BreakTimer = true,
-		BuffWarningPatch = true,
-		CharacterSheetImprovements = true,
-		CharacterStatsFormatting = true,
-		ChatItemEnhancements = true,
-		CinematicBlocker = true,
-		CleanNamesInInstances = true,
-		CooldownManagerMountOpacity = true,
-		CooldownManagerTweaks = true,
-		DamageMeterToggle = true,
-		DebuffDurationDecimals = true,
-		DraggableFrames = true,
-		EventToastBlocker = true,
-		EvokerLetFly = true,
-		FocusMarkerAnnouncement = true,
-		GearUpgradeRankTooltipRenamer = true,
-		GearUpgradeReminder = true,
-		HiddenQuestCleanup = true,
-		KeystoneAnnouncer = true,
-		KeystoneInfo = true,
-		MDTSim = true,
-		PlayerFrameChain = true,
-		SelfAbsorb = true,
-		Stopwatch = true,
-		TalkingHeadBlocker = true,
-		TargetShield = true,
-		TalentReminders = true,
-		TooltipIDs = true,
-		UIScale = true,
-		UnitTooltipEnhancements = true,
-	}
-
 	XephUISaved = XephUISaved or {}
 
-	for key, value in pairs(defaults) do
-		if XephUISaved[key] == nil then
-			XephUISaved[key] = value
+	for _, module in ipairs(Private.ModuleDefinitions) do
+		if XephUISaved[module.key] == nil then
+			XephUISaved[module.key] = module.enabledByDefault
 		end
 	end
+
+	-- Modules may add controls to their own category while the queue runs, so the root is registered only afterwards.
+	local rootCategory = Private.CreateSettingsCategories()
 
 	for i = 1, #Private.LoginFnQueue do
 		Private.LoginFnQueue[i]()
 	end
 
 	table.wipe(Private.LoginFnQueue)
+
+	Settings.RegisterAddOnCategory(rootCategory)
 end)

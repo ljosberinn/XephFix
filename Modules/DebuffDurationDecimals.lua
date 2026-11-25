@@ -93,7 +93,7 @@ table.insert(Private.LoginFnQueue, function()
 		regions.dispelSymbol:SetAlpha(CVarCallbackRegistry:GetCVarValueBool("colorblindMode") and 1 or 0)
 
 		local dispelBorderStyle = auraContainer.showDispelType
-				and Enum.CustomAuraButtonDispelTypeTextureStyle.BorderWithIcon
+			and Enum.CustomAuraButtonDispelTypeTextureStyle.BorderWithIcon
 			or Enum.CustomAuraButtonDispelTypeTextureStyle.Border
 
 		if regions.dispelBorderStyle == dispelBorderStyle then
@@ -156,14 +156,31 @@ table.insert(Private.LoginFnQueue, function()
 	---@type table CustomAuraContainerTemplate's public object.
 	local container = CreateFrame("AuraContainer", nil, DebuffFrame, "CustomAuraContainerTemplate")
 	container:SetUnit(PlayerFrame.unit or "player")
+	-- The managed container includes private auras, which DebuffFrame caps separately.
 	container:AddAuraGroup(GROUP_KEY, "HARMFUL", {
-		maxFrameCount = DebuffFrame.maxAuras,
+		maxFrameCount = DebuffFrame.maxAuras + DebuffFrame.maxPrivateAuras,
 		initializeFrame = InitializeDebuffButton,
 	})
 
-	-- Private aura anchors are siblings of this container and keep their positions, since
-	-- DebuffFrame still lays out its hidden buttons in front of them.
 	DebuffFrame.AuraContainer:Hide()
+
+	-- DebuffFrame's private aura anchors are children of DebuffFrame, so they'd still draw every
+	-- private aura a second time under our buttons. Reparenting survives Edit Mode re-showing them.
+	local hiddenAnchorParent = CreateFrame("Frame")
+	hiddenAnchorParent:Hide()
+
+	local function SuppressPrivateAuraAnchors()
+		if InCombatLockdown() then
+			EventUtil.RegisterOnceFrameEventAndCallback("PLAYER_REGEN_ENABLED", SuppressPrivateAuraAnchors)
+			return
+		end
+
+		for _, anchor in ipairs(DebuffFrame.PrivateAuraAnchors) do
+			anchor:SetParent(hiddenAnchorParent)
+		end
+	end
+
+	SuppressPrivateAuraAnchors()
 
 	local function ApplyLayout()
 		local auraContainer = DebuffFrame.AuraContainer

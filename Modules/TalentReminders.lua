@@ -36,14 +36,14 @@ table.insert(Private.LoginFnQueue, function()
 			skyreach = 601,
 			windrunnersSpire = 2492,
 			-- midnight s2
-			altarOfFangs = 2588, -- ?
-			rubyLifePools = 2095, -- ?
-			templeOfSethraliss = 1038, -- ?
-			kingsRest = 1004, -- ?
-			denOfNalorakk = 2564, -- ?
-			murderRow = 2433, -- ?
-			voidscarArena = 2574, -- ?
-			blindingVale = 2500, -- ?
+			altarOfFangs = 2588,
+			rubyLifePools = 2095,
+			templeOfSethraliss = 1038,
+			kingsRest = 1004,
+			denOfNalorakk = 2564,
+			murderRow = 2433,
+			voidscarArena = 2574,
+			blindingVale = 2500,
 		}
 
 		if classId == Constants.UICharacterClasses.Evoker then
@@ -117,7 +117,6 @@ table.insert(Private.LoginFnQueue, function()
 			zoneIdToSpellIdsMap[dungeons.kingsRest] = {
 				CauterizingFlame,
 				Zephyr,
-				Overawe,
 				BestowWeyrnstone,
 			}
 

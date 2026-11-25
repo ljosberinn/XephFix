@@ -336,10 +336,10 @@ table.insert(Private.LoginFnQueue, function()
 	end
 
 	do
-		local PANEL_TITLE = "XephUI Addon Management"
 		local NO_PROFILE_LABEL = "No profile"
 
-		local category, layout = Settings.RegisterVerticalLayoutCategory(PANEL_TITLE)
+		local category = Private.SettingsCategories.AddonManagement.category
+		local layout = Private.SettingsCategories.AddonManagement.layout
 
 		settingsCategory = category
 
@@ -589,8 +589,6 @@ table.insert(Private.LoginFnQueue, function()
 
 			return container:GetData()
 		end, "Content this profile is offered for.")
-
-		Settings.RegisterAddOnCategory(category)
 	end
 
 	EventUtil.ContinueOnPlayerLogin(function()

@@ -1,19 +1,13 @@
 Collection of former utiltiy WeakAuras or similar.
 
-## How To Disable A Module For Yourself
+## Toggling Modules
 
-Find the feature you wish to disable in the TOC-file. Either remove it from there, or if you wish to not having to edit files, run:
-
-```lua
--- Stopwatch as example
-/run XephUISaved.Stopwatch = false
-/reload
-```
+Every module has its own category under Options > AddOns > XephUI with an Enable checkbox. Changes take effect after `/reload`.
 
 ## Modules
 
 - ActionTracker
-  - off by default: `/run XephUISaved.ActionTracker = true`
+  - off by default
   - shows your last 5 casts below the player frame and its class resources, plus the cast in progress
   - interrupted casts, kicked channels and unfinished empowers are greyed out and marked with a raid cross
   - released empowers show the stage they were released at
@@ -50,6 +44,7 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
 - CinematicBlocker
   - skips the King's Rest cinematic before Dazar, every time rather than only after the first viewing
 - CleanNamesInInstances
+  - off by default
   - port of https://wago.io/M13VlqtM-
 - CooldownManagerMountOpacity
   - changes the opacity of the cooldown manager when mounted out of combat to 0.25
@@ -60,6 +55,7 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
 - CVars
   - enables aura spell IDs in tooltips
 - DamageMeterToggle
+  - off by default
   - automatically shows the damage meter in dungeons, but hides it outside
 - DebuffDurationDecimals
   - shows tenths of a second on your debuff durations below 5 seconds, in and out of combat
@@ -87,6 +83,8 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
   - port of https://wago.io/LTwpBiuz_
 - PlayerFrameChain
   - adds the winged boss chain overlay to the player frame
+- ReadyCheck
+  - in Mythic dungeons before the key starts, shows a ready-check-styled panel of pre-pull checks
 - SelfAbsorb
   - replaces the player frame's absorb bar with one that extends past the frame edge instead of clipping at max health
   - the bar length shows health plus absorbs, up to one max health worth of absorb
@@ -100,8 +98,9 @@ Find the feature you wish to disable in the TOC-file. Either remove it from ther
 - TargetShield
   - shows remaining amount of absorb on the target
 - TooltipIDs
-  - appends item ID and spell ID to their respective tooltips
+  - appends item ID (plus bonus IDs) and spell ID to their respective tooltips
 - UIScale
+  - off by default
   - port of !UIScale addon, but doesn't throw an error when reloading ui mid-combat
   - set to 1440p resolution
 - UnitTooltipEnhancements
